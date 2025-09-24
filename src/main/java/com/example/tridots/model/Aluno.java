@@ -1,16 +1,13 @@
 package com.example.tridots.model;
 
 import com.example.tridots.enums.StatusMatricula;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Table(name = "aluno")
+@DiscriminatorValue("ALUNO")
 @Entity
 @Getter
 @Setter

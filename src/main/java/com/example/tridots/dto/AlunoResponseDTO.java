@@ -1,5 +1,6 @@
 package com.example.tridots.dto;
 
+import com.example.tridots.enums.Cargo;
 import com.example.tridots.enums.StatusMatricula;
 
 public record AlunoResponseDTO(
@@ -9,5 +10,6 @@ public record AlunoResponseDTO(
         String raAluno,
         String curso,
         Integer semestre,
-        StatusMatricula statusMatricula
+        StatusMatricula statusMatricula,
+        Cargo cargo
 ) {}

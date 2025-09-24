@@ -7,11 +7,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
 
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "usuario")
 @Entity
 @Getter
@@ -22,6 +24,7 @@ public abstract class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String idUsuario;
+    //id_aluno
     private String nome;
     private String emailInstitucional;
     private String password;
@@ -31,6 +34,11 @@ public abstract class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        /*if(this.cargo == Cargo.ADMINISTRADOR) {
+            return List.of(new SimpleGrantedAuthority("ADMINISTRADOR"), new SimpleGrantedAuthority("ALUNO"));
+        } else {
+            return List.of(new SimpleGrantedAuthority("ALUNO"));
+        }*/
         return List.of();
     }
 
@@ -41,7 +49,7 @@ public abstract class Usuario implements UserDetails {
 
     @Override
     public String getUsername() {
-        return nome;
+        return this.emailInstitucional;
     }
 
     @Override
