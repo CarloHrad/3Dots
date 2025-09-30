@@ -34,12 +34,13 @@ public abstract class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        /*if(this.cargo == Cargo.ADMINISTRADOR) {
-            return List.of(new SimpleGrantedAuthority("ADMINISTRADOR"), new SimpleGrantedAuthority("ALUNO"));
+        if(this.cargo == Cargo.ADMINISTRADOR) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMINISTRADOR"));
+        } else if (this.cargo == Cargo.ALUNO) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ALUNO"));
         } else {
-            return List.of(new SimpleGrantedAuthority("ALUNO"));
-        }*/
-        return List.of();
+            return List.of();
+        }
     }
 
     @Override

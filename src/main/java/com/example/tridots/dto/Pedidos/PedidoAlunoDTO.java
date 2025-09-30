@@ -1,6 +1,8 @@
-package com.example.tridots.dto;
+package com.example.tridots.dto.Pedidos;
 
-import java.time.LocalDate;
+import com.example.tridots.dto.Alunos.AlunoDTO;
+import com.example.tridots.dto.ArquivoDTO;
+
 import java.time.LocalDateTime;
 
 public record PedidoAlunoDTO(

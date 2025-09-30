@@ -1,4 +1,4 @@
-package com.example.tridots.dto;
+package com.example.tridots.dto.Alunos;
 
 public record AlunoDTO(
         String nome,

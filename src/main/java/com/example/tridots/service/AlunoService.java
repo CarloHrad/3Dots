@@ -1,8 +1,8 @@
 package com.example.tridots.service;
 
-import com.example.tridots.dto.AlterarSenhaDTO;
-import com.example.tridots.dto.AlunoRegisterDTO;
-import com.example.tridots.dto.AlunoResponseDTO;
+import com.example.tridots.dto.Alunos.AlterarSenhaDTO;
+import com.example.tridots.dto.Alunos.AlunoRegisterDTO;
+import com.example.tridots.dto.Alunos.AlunoResponseDTO;
 import com.example.tridots.enums.Cargo;
 import com.example.tridots.enums.StatusMatricula;
 import com.example.tridots.model.Aluno;
@@ -13,12 +13,10 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -99,16 +97,22 @@ public class AlunoService {
         log.warn("Senha atualizada com sucesso!");
     }
 
-    public List<Aluno> getAlunos() {
+    public List<AlunoResponseDTO> getAlunos() {
         log.info("Requisitando todos os alunos: ");
         return usuarioRepository.findAll()
                 .stream()
                 .filter(u -> u instanceof Aluno)
                 .map(u -> (Aluno) u)
+                .map(aluno -> new AlunoResponseDTO(
+                        aluno.getIdUsuario(),
+                        aluno.getNome(),
+                        aluno.getEmailInstitucional(),
+                        aluno.getRaAluno(),
+                        aluno.getCurso(),
+                        aluno.getSemestre(),
+                        aluno.getStatusMatricula(),
+                        aluno.getCargo()
+                ))
                 .toList();
     }
-
-
-
-
 }

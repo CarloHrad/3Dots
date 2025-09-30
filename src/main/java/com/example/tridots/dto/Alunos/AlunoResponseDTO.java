@@ -1,4 +1,4 @@
-package com.example.tridots.dto;
+package com.example.tridots.dto.Alunos;
 
 import com.example.tridots.enums.Cargo;
 import com.example.tridots.enums.StatusMatricula;

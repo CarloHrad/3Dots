@@ -46,6 +46,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
@@ -55,6 +56,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/aluno/get").permitAll()
                         .requestMatchers(HttpMethod.POST, "/aluno/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/aluno/usuarios").permitAll()
+                        .requestMatchers("/h2-console").permitAll()
+                        .requestMatchers( "/h2-console/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/arquivo/upload").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMINISTRADOR")
                         .anyRequest().authenticated() //any request = qualquer role, só precisa estar autenticado
