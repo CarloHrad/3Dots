@@ -1,6 +1,7 @@
 package com.example.tridots.controller;
 
 import com.example.tridots.dto.*;
+import com.example.tridots.dto.Alunos.*;
 import com.example.tridots.model.Aluno;
 import com.example.tridots.model.Usuario;
 import com.example.tridots.repository.UsuarioRepository;
@@ -18,10 +19,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import javax.security.auth.login.CredentialNotFoundException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 
@@ -90,16 +89,6 @@ public class AlunoController {
         log.warn("Alteração de senha de conta de Aluno requisitado");
         alunoService.alterarSenha(idAluno, alterarSenhaDTO, usuarioLogado);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/get")
-    public ResponseEntity<List<Aluno>> getAlunos() {
-        List<Aluno> lista = alunoService.getAlunos();
-        log.warn("Lista de contas de Alunos requisitada");
-        if (lista.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(lista);
     }
 
 

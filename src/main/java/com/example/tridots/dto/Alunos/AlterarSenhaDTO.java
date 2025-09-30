@@ -1,6 +1,5 @@
-package com.example.tridots.dto;
+package com.example.tridots.dto.Alunos;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
 public record AlterarSenhaDTO(

@@ -1,4 +1,4 @@
-package com.example.tridots.dto;
+package com.example.tridots.dto.Pedidos;
 
 public record PedidoRequestDTO(
     String descricao,

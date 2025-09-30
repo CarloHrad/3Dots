@@ -1,4 +1,4 @@
-package com.example.tridots.dto;
+package com.example.tridots.dto.Administrador;
 
 import com.example.tridots.enums.StatusPedido;
 
