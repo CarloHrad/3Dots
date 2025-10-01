@@ -36,14 +36,34 @@ public class AdminController {
     /*Endpoint para administrador atualizar os próprios dados*/
 
     @GetMapping("/listar-pedidos")
-    public List<PedidoAlunoDTO> listarTodos() {
-        log.warn("Listando histórico de todos os pedidos");
-        return pedidoService.listarTodos();
+    public ResponseEntity<BaseResponse> listarTodos() {
+        log.info("Listando histórico de todos os pedidos");
+        try {
+            List<PedidoAlunoDTO> pedidos = pedidoService.listarTodos();
+
+            BaseResponse response = new BaseResponse(
+                    OperationCode.SUCCESSFUL_Operation.getCode(),
+                    OperationCode.SUCCESSFUL_Operation.getDescription(),
+                    pedidos,
+                    OperationCode.SUCCESSFUL_Operation.getHttpStatus()
+            );
+            return ResponseEntity.status(response.getHttpStatus()).body(response);
+
+        } catch (Exception ex) {
+            log.error("Erro inesperado ao listar pedidos", ex);
+            BaseResponse errorResponse = new BaseResponse(
+                    OperationCode.INTERNAL_ServerError.getCode(),
+                    OperationCode.INTERNAL_ServerError.getDescription(),
+                    null,
+                    OperationCode.INTERNAL_ServerError.getHttpStatus()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
     @PatchMapping("/{idPedido}/status")
     public ResponseEntity<BaseResponse> updateStatus(@PathVariable("idPedido") String idPedido, @RequestBody @Valid StatusUpdateDTO statusUpdateDTO) {
-        log.warn("Requisição para atualizar status de pedido");
+        log.info("Requisição para atualizar status de pedido");
 
         try {
             BaseResponse response = pedidoService.atualizarStatus(idPedido, statusUpdateDTO);
@@ -83,11 +103,19 @@ public class AdminController {
 
     @GetMapping("/get-alunos")
     public ResponseEntity<List<AlunoResponseDTO>> getAlunos() {
-        List<AlunoResponseDTO> lista = alunoService.getAlunos();
-        log.warn("Lista de contas de Alunos requisitada");
-        if (lista.isEmpty()) {
-            return ResponseEntity.noContent().build();
+        log.info("Lista de contas de alunos requisitada");
+        try {
+            List<AlunoResponseDTO> lista = alunoService.getAlunos();
+
+            if (lista.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            return ResponseEntity.ok(lista);
+
+        } catch (Exception ex) {
+            log.error("Erro inesperado ao listar alunos", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return ResponseEntity.ok(lista);
     }
 }
