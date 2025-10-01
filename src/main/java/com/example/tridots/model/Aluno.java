@@ -14,6 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Aluno extends Usuario {
+    @Column(unique = true, nullable = false)
     private String raAluno;
     private String curso;
     private int semestre;

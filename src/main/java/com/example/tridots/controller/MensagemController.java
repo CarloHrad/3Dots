@@ -42,7 +42,4 @@ public class MensagemController {
         mensagemService.deletarComentario(pedidoId, deleteDTO.mensagemId(), usuario);
         return ResponseEntity.noContent().build();
     }
-
-
-
 }
