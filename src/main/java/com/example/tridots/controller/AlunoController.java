@@ -1,9 +1,7 @@
 package com.example.tridots.controller;
 
 import com.example.tridots.OperationCode.OperationCode;
-import com.example.tridots.dto.*;
 import com.example.tridots.dto.Alunos.*;
-import com.example.tridots.model.Aluno;
 import com.example.tridots.model.Usuario;
 import com.example.tridots.repository.AlunoRepository;
 import com.example.tridots.repository.UsuarioRepository;
@@ -20,16 +18,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
-import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/aluno")
@@ -137,7 +131,7 @@ public class AlunoController {
             );
             return ResponseEntity.status(response.getHttpStatus()).body(response);
 
-        } catch (AccessDeniedException e) {
+        } catch (AccessDeniedException accessDeniedException) {
             BaseResponse response = new BaseResponse(
                     OperationCode.ACCESS_Denid.getCode(),
                     OperationCode.ACCESS_Denid.getDescription(),
@@ -146,8 +140,8 @@ public class AlunoController {
             );
             return ResponseEntity.status(response.getHttpStatus()).body(response);
 
-        } catch (Exception e) {
-            log.error("Erro inesperado ao editar informações de usuário", e);
+        } catch (Exception exception) {
+            log.error("Erro inesperado ao editar informações de usuário", exception);
             BaseResponse response = new BaseResponse(
                     OperationCode.INTERNAL_ServerError.getCode(),
                     OperationCode.INTERNAL_ServerError.getDescription(),
@@ -162,6 +156,17 @@ public class AlunoController {
     public ResponseEntity<BaseResponse> alterarSenha(@PathVariable("idAluno") String idAluno,
                                                      @RequestBody AlterarSenhaDTO alterarSenhaDTO,
                                                      @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        if (alterarSenhaDTO.novaSenha().equals(alterarSenhaDTO.senhaAtual())) {
+            BaseResponse response = new BaseResponse(
+                    OperationCode.PASSWORD_ReuseNotAllowed.getCode(),
+                    OperationCode.PASSWORD_ReuseNotAllowed.getDescription(),
+                    null,
+                    OperationCode.PASSWORD_ReuseNotAllowed.getHttpStatus()
+            );
+            return ResponseEntity.status(response.getHttpStatus()).body(response);
+        }
+
         try {
             log.warn("Alteração de senha solicitada para usuário {}", idAluno);
             alunoService.alterarSenha(idAluno, alterarSenhaDTO, usuarioLogado);
@@ -174,7 +179,7 @@ public class AlunoController {
             );
             return ResponseEntity.status(response.getHttpStatus()).body(response);
 
-        } catch (AccessDeniedException e) {
+        } catch (AccessDeniedException accessDeniedException) {
             BaseResponse response = new BaseResponse(
                     OperationCode.ACCESS_Denid.getCode(),
                     OperationCode.ACCESS_Denid.getDescription(),
@@ -183,8 +188,8 @@ public class AlunoController {
             );
             return ResponseEntity.status(response.getHttpStatus()).body(response);
 
-        } catch (Exception e) {
-            log.error("Erro inesperado ao alterar senha de usuário {}", idAluno, e);
+        } catch (Exception exception) {
+            log.error("Erro inesperado ao alterar senha de usuário {}", idAluno, exception);
             BaseResponse response = new BaseResponse(
                     OperationCode.INTERNAL_ServerError.getCode(),
                     OperationCode.INTERNAL_ServerError.getDescription(),
@@ -197,7 +202,16 @@ public class AlunoController {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<BaseResponse> handleValidationException(MethodArgumentNotValidException ex) {
-        String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+
+        String errorMessage = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getDefaultMessage())
+                .collect(Collectors.joining("; " + System.lineSeparator()));
+
+        if (errorMessage.isEmpty()) {
+            errorMessage ="Erro de validação no modelo";
+        }
 
         BaseResponse response = new BaseResponse(
                 OperationCode.INVALID_RequestValue.getCode(),
@@ -210,7 +224,6 @@ public class AlunoController {
         return ResponseEntity.status(response.getHttpStatus()).body(response);
     }
 
-    // Captura campos obrigatórios nulos
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<BaseResponse> handleIllegalArgument(IllegalArgumentException ex) {
         BaseResponse response = new BaseResponse(
@@ -221,5 +234,7 @@ public class AlunoController {
         );
         return ResponseEntity.status(response.getHttpStatus()).body(response);
     }
+
+
 
 }

@@ -1,5 +1,6 @@
 package com.example.tridots.service;
 
+import com.example.tridots.OperationCode.OperationCode;
 import com.example.tridots.model.Aluno;
 import com.example.tridots.model.Usuario;
 import com.example.tridots.repository.UsuarioRepository;
@@ -26,7 +27,7 @@ public class AuthService implements UserDetailsService {
 
         if (user == null) {
             log.error("Usuário não pôde ser encontrado");
-            throw new UsernameNotFoundException("Usuário não encontrado");
+            throw new UsernameNotFoundException(OperationCode.LOGIN_NotFound.getDescription());
         }
 
         return user;

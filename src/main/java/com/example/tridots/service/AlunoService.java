@@ -1,5 +1,6 @@
 package com.example.tridots.service;
 
+import com.example.tridots.OperationCode.OperationCode;
 import com.example.tridots.dto.Alunos.AlterarSenhaDTO;
 import com.example.tridots.dto.Alunos.AlunoRegisterDTO;
 import com.example.tridots.dto.Alunos.AlunoResponseDTO;
@@ -13,6 +14,7 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +33,7 @@ public class AlunoService {
 
     private static final Logger log = LoggerFactory.getLogger(AlunoService.class);
 
-
+    @PreAuthorize("hasRole('ALUNO')")
     public AlunoResponseDTO createAluno(AlunoRegisterDTO alunoRegisterDTO) {
 
         Aluno aluno = new Aluno();
@@ -47,7 +49,6 @@ public class AlunoService {
         Aluno newAluno = usuarioRepository.save(aluno);
         log.warn("Aluno cadastrado com sucesso!");
 
-        //retonardo criação de response do aluno
         return new AlunoResponseDTO(
                 aluno.getIdUsuario(),
                 aluno.getNome(),
@@ -60,23 +61,45 @@ public class AlunoService {
         );
     }
 
-    public void updateAluno(Usuario usuarioLogado, String idAluno, String nome, Integer semestre) throws AccessDeniedException {
-        Aluno aluno = alunoRepository.findById(idAluno).orElseThrow(() -> {
+    @PreAuthorize("hasRole('ALUNO')")
+    public BaseResponse updateAluno(Usuario usuarioLogado, String idAluno, String nome, Integer semestre) throws AccessDeniedException {
+
+        Aluno aluno = alunoRepository.findById(idAluno).orElse(null);
+
+        if (aluno == null) {
             log.error("O aluno com o vigente ID não pôde ser encontrado");
-            return new RuntimeException("Aluno não encontrado");
-        });
+            return new BaseResponse(
+                    OperationCode.LOGIN_NotFound.getCode(),
+                    OperationCode.LOGIN_NotFound.getDescription(),
+                    null,
+                    OperationCode.LOGIN_NotFound.getHttpStatus()
+            );
+        }
 
         if (!aluno.getIdUsuario().equals(usuarioLogado.getIdUsuario())) {
             String user = usuarioLogado.getIdUsuario();
-            log.warn("Tentativa de atualização não autorizada. Usuário {} tentou atualizar outro aluno", user);
-            throw new AccessDeniedException("Você não tem permissão para alterar esta conta.");
+            log.warn("Tentativa de atualização não autorizada. Usuário {} tentou atualizar outro usuário", user);
+            return new BaseResponse(
+                    OperationCode.UNAUTHORIZED.getCode(),
+                    OperationCode.UNAUTHORIZED.getDescription(),
+                    null,
+                    OperationCode.UNAUTHORIZED.getHttpStatus()
+            );
         }
 
         aluno.setNome(nome);
         aluno.setSemestre(semestre);
         alunoRepository.save(aluno);
         log.warn("Dados de aluno foram atualizados com sucesso!");
+        return new BaseResponse(
+                OperationCode.SUCCESSFUL_Operation.getCode(),
+                OperationCode.SUCCESSFUL_Operation.getDescription(),
+                null,
+                OperationCode.SUCCESSFUL_Operation.getHttpStatus()
+        );
+
     }
+
 
     @Transactional
     public void alterarSenha(String idAluno, AlterarSenhaDTO alterarSenhaDTO, Usuario usuarioLogado) throws AccessDeniedException {
@@ -85,7 +108,18 @@ public class AlunoService {
             throw new AccessDeniedException("Falha de autenticação durante mudança de senha");
         }
 
-        Aluno aluno = alunoRepository.findById(idAluno).orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
+        Aluno aluno = alunoRepository.findById(idAluno).orElse(null);
+
+        if (aluno == null) {
+            log.error("O aluno com o vigente ID não pôde ser encontrado");
+            new BaseResponse(
+                    OperationCode.LOGIN_NotFound.getCode(),
+                    OperationCode.LOGIN_NotFound.getDescription(),
+                    null,
+                    OperationCode.LOGIN_NotFound.getHttpStatus()
+            );
+            return;
+        }
 
         if (!passwordEncoder.matches(alterarSenhaDTO.senhaAtual(), aluno.getPassword())) {
             log.error("A senha atual está incorreta. Tente novamente");
@@ -95,8 +129,16 @@ public class AlunoService {
         aluno.setPassword(passwordEncoder.encode(alterarSenhaDTO.novaSenha()));
         alunoRepository.save(aluno);
         log.warn("Senha atualizada com sucesso!");
+        new BaseResponse(
+                OperationCode.SUCCESSFUL_Operation.getCode(),
+                OperationCode.SUCCESSFUL_Operation.getDescription(),
+                null,
+                OperationCode.SUCCESSFUL_Operation.getHttpStatus()
+        );
     }
 
+
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<AlunoResponseDTO> getAlunos() {
         log.info("Requisitando todos os alunos: ");
         return usuarioRepository.findAll()
