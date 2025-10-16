@@ -55,7 +55,7 @@ public class PedidoService {
         pedido.setAluno(userAluno);
         pedido.setArquivo(arquivo);
         pedido.setDescricao(dto.descricao());
-        pedido.setMedidas(dto.medidas());
+        pedido.setMedidas(new Medidas3D(dto.altura(), dto.largura(), dto.profundidade()));
         pedido.setObservacao(dto.observacao());
         pedido.setStatus(StatusPedido.PENDENTE);
         pedido.setData(LocalDateTime.now());
@@ -67,7 +67,9 @@ public class PedidoService {
                 pedido.getIdPedido(),
                 new ArquivoDTO(arquivo.getIdArquivo(), arquivo.getNomeArquivo(), arquivo.getTipoArquivo()),
                 pedido.getDescricao(),
-                pedido.getMedidas(),
+                pedido.getMedidas().getAltura(),
+                pedido.getMedidas().getLargura(),
+                pedido.getMedidas().getProfundidade(),
                 pedido.getObservacao(),
                 pedido.getDiasEstimados(),
                 pedido.getData(),
@@ -159,7 +161,9 @@ public class PedidoService {
                 pedido.getIdPedido(),
                 new ArquivoDTO(arquivo.getIdArquivo(), arquivo.getNomeArquivo(), arquivo.getTipoArquivo()),
                 pedido.getDescricao(),
-                pedido.getMedidas(),
+                pedido.getMedidas().getAltura(),
+                pedido.getMedidas().getLargura(),
+                pedido.getMedidas().getProfundidade(),
                 pedido.getObservacao(),
                 pedido.getDiasEstimados(),
                 pedido.getData(),
@@ -183,7 +187,9 @@ public class PedidoService {
                             pedido.getIdPedido(),
                             new ArquivoDTO(pedido.getArquivo().getIdArquivo(), pedido.getArquivo().getNomeArquivo(), pedido.getArquivo().getTipoArquivo()),
                             pedido.getDescricao(),
-                            pedido.getMedidas(),
+                            pedido.getMedidas().getAltura(),
+                            pedido.getMedidas().getLargura(),
+                            pedido.getMedidas().getProfundidade(),
                             pedido.getObservacao(),
                             pedido.getDiasEstimados(),
                             pedido.getData(),
@@ -212,7 +218,9 @@ public class PedidoService {
                                 pedido.getArquivo().getTipoArquivo()
                         ),
                         pedido.getDescricao(),
-                        pedido.getMedidas(),
+                        pedido.getMedidas().getAltura(),
+                        pedido.getMedidas().getLargura(),
+                        pedido.getMedidas().getProfundidade(),
                         pedido.getObservacao(),
                         pedido.getDiasEstimados(),
                         pedido.getData(),

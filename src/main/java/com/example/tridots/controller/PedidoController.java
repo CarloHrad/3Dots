@@ -110,8 +110,8 @@ public class PedidoController {
             );
 
 
-        } catch (AccessDeniedException ex) {
-            log.error("Acesso negado ao cancelar pedido {}", idPedido, ex);
+        } catch (AccessDeniedException accessDeniedException) {
+            log.error("Acesso negado ao cancelar pedido {}", idPedido, accessDeniedException);
             return ResponseEntity.status(OperationCode.ACCESS_Denid.getHttpStatus())
                     .body(new BaseResponse(
                             OperationCode.ACCESS_Denid.getCode(),
@@ -194,7 +194,6 @@ public class PedidoController {
         return ResponseEntity.status(response.getHttpStatus()).body(response);
     }
 
-    // Captura campos obrigatórios nulos
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<BaseResponse> handleIllegalArgument(IllegalArgumentException ex) {
         BaseResponse response = new BaseResponse(
