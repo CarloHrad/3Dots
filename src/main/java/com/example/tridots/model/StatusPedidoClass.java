@@ -1,6 +1,7 @@
 package com.example.tridots.model;
 
 import com.example.tridots.enums.StatusPedido;
+import jakarta.annotation.Resource;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -10,12 +11,16 @@ import java.time.LocalDateTime;
 public class StatusPedidoClass {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "idStatus")
     private String idStatus;
 
-    //MUDAR PRA PEDIDO PEDIDO
-    @ManyToOne // ou @OneToOne, dependendo do caso
-    @JoinColumn(name = "pedido_id")
+    @ManyToOne
+    @JoinColumn(name = "idPedido", nullable = false)
     private Pedido pedido;
+
+    @Column(name = "statusPedido", nullable = false)
     private StatusPedido statusPedido;
+
+    @Column(name = "dataAlteracao", nullable = false)
     private LocalDateTime dataAlteracao;
 }

@@ -23,9 +23,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/pedidos/{pedidoId}")
@@ -195,5 +199,51 @@ public class MensagemController {
     private ResponseEntity<BaseResponse> buildResponse(OperationCode code, String extraMessage) {
         return ResponseEntity.status(code.getHttpStatus())
                 .body(new BaseResponse(code.getCode(), code.getDescription() + ": " + extraMessage, null, code.getHttpStatus()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<BaseResponse> handlerException(MethodArgumentNotValidException ex) {
+
+        Object target = ex.getBindingResult().getTarget();
+
+        List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
+
+        boolean size = fieldErrors.stream()
+                .anyMatch(error -> "Size".equalsIgnoreCase(error.getCode()));
+
+        boolean notblank = fieldErrors.stream()
+                .anyMatch(error -> "NotBlank".equalsIgnoreCase(error.getCode())
+                        || "NotNull".equalsIgnoreCase(error.getCode()));
+
+        boolean pattern = fieldErrors.stream()
+                .anyMatch(error -> "Pattern".equalsIgnoreCase(error.getCode()));
+
+        OperationCode operationCode;
+        if (notblank) {
+            operationCode = OperationCode.ARGUMENT_Null;
+        } else if (size) {
+            operationCode = OperationCode.VARIABLE_MAX_CHARACTER;
+        } else if (pattern) {
+            operationCode = OperationCode.INVALID_RequestValue;
+        } else {
+            operationCode = OperationCode.INVALID_RequestValue;
+        }
+
+        String errorMessage = fieldErrors.stream()
+                .map(FieldError::getDefaultMessage)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("; " + System.lineSeparator()));
+
+        if (errorMessage.isBlank()) {
+            errorMessage = "Erro de requisição de pedido";
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new BaseResponse(
+                        operationCode.getCode(),
+                        errorMessage,
+                        null,
+                        operationCode.getHttpStatus()
+                ));
     }
 }

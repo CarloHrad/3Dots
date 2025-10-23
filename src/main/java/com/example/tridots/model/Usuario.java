@@ -20,13 +20,20 @@ import java.util.List;
 public abstract class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "idUsuario", nullable = false)
     private String idUsuario;
-    //id_aluno
+
+    @Column(name = "nome", nullable = false)
     private String nome;
+
+    @Column(name = "emailInstitucional", nullable = false)
     private String emailInstitucional;
+
+    @Column(name = "senha", nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "cargo", nullable = false)
     private Cargo cargo;
 
     @Override
