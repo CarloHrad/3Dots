@@ -19,29 +19,33 @@ import java.time.LocalDateTime;
 public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "idPedido")
     private String idPedido;
 
     @ManyToOne
-    @JoinColumn(name = "id_aluno", nullable = false)
+    @JoinColumn(name = "idUsuario", nullable = false)
     private Aluno aluno;
 
     @OneToOne
-    @JoinColumn(name = "id_arquivo", nullable = false)
+    @JoinColumn(name = "idArquivo", nullable = false)
     private Arquivo arquivo;
 
+    @Column(name = "descricao", nullable = false)
     private String descricao;
 
     @Embedded
     private Medidas3D medidas;
 
+    @Column(name = "observacao")
     private String observacao;
 
+    @Column(name = "estimativaDias", nullable = false)
     private Integer diasEstimados;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private StatusPedido status;
-
+    @Column(name = "data", nullable = false)
     private LocalDateTime data;
 
 }

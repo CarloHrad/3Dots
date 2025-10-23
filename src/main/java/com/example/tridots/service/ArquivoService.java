@@ -30,13 +30,21 @@ public class ArquivoService {
 
     public Arquivo salvar(MultipartFile file) throws IOException {
 
+        List<String> extensoes = List.of("stl", "obj", "fbx", "3mf", "dae", "txt");
+        if (!extensoes.contains(file.getContentType())) {
+            throw new IllegalArgumentException("Tipo de arquivo não permitido: " + file.getContentType());
+        }
+
+
         Path dir = Paths.get(localDir).toAbsolutePath();
         if (!Files.exists(dir)) {
             Files.createDirectories(dir);
         }
+
         String newName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
         Path dirFile = dir.resolve(newName);
         file.transferTo(dirFile.toFile());
+
         log.warn("Passado o caminho do arquivo");
 
 
@@ -45,6 +53,7 @@ public class ArquivoService {
         arquivo.setTipoArquivo(file.getContentType());
         arquivo.setTamanho(file.getSize());
         arquivo.setCaminho(dirFile.toString());
+
         log.warn("Arquivo salvo com sucesso!");
         return arquivoRepository.save(arquivo);
     }

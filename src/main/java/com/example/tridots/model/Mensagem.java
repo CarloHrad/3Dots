@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "mensagem")
+@Table(name = "comentario")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,13 +14,20 @@ import java.time.LocalDateTime;
 public class Mensagem {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "idComentario")
     private String idMensagem;
+
     @ManyToOne
-    @JoinColumn(name = "pedido_id")
+    @JoinColumn(name = "idPedido", nullable = false)
     private Pedido pedido;
+
     @ManyToOne
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @JoinColumn(name = "idAutor", nullable = false)
     private Usuario autor;
+
+    @Column(name = "mensagem", nullable = false)
     private String conteudo;
+
+    @Column(name = "dataComentario", nullable = false)
     private LocalDateTime dataHora = LocalDateTime.now();
 }

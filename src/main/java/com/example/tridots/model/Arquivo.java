@@ -15,10 +15,18 @@ import lombok.Setter;
 public class Arquivo {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "idArquivo")
     private String idArquivo;
-    //id_arquivo
+
+    @Column(name = "nomeArquivo")
     private String nomeArquivo;
+
+    @Column(name = "tipoArquivo")
     private String tipoArquivo;
+
+    @Column(name = "tamanho")
     private Long tamanho;
+
+    @Column(name = "caminho")
     private String caminho;
 }

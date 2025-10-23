@@ -20,7 +20,9 @@ public enum OperationCode {
     COMMENT_NotFound("40", "Comentário(s) não encontrado(s)", HttpStatus.NOT_FOUND),
     COMMENT_DoesNotBelong("41", "Comentário não pertence a este pedido", HttpStatus.BAD_REQUEST),
     ARGUMENT_NotFound("42", "Não pôde ser encontrado a(s) entidade(s) relacionada(s)", HttpStatus.NOT_FOUND),
-    INTERNAL_ServerError("99", "Erro interno no servidor", HttpStatus.INTERNAL_SERVER_ERROR);
+    INTERNAL_ServerError("99", "Erro interno no servidor", HttpStatus.INTERNAL_SERVER_ERROR),
+    VARIABLE_MAX_CHARACTER("100", "Ultrapassado o limite máximo de caracteres", HttpStatus.BAD_REQUEST);
+
 
     private final String code;
     private final String description;
