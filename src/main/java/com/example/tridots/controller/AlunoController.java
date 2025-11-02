@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,7 +25,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -203,29 +207,6 @@ public class AlunoController {
         }
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<BaseResponse> handleValidationException(MethodArgumentNotValidException ex) {
-
-        String errorMessage = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> error.getDefaultMessage())
-                .collect(Collectors.joining("; " + System.lineSeparator()));
-
-        if (errorMessage.isEmpty()) {
-            errorMessage ="Erro de validação no modelo";
-        }
-
-        BaseResponse response = new BaseResponse(
-                OperationCode.INVALID_RequestValue.getCode(),
-                OperationCode.INVALID_RequestValue.getDescription() + ": " + errorMessage,
-                null,
-                OperationCode.INVALID_RequestValue.getHttpStatus()
-        );
-
-        log.warn("Erro de validação: {}", errorMessage);
-        return ResponseEntity.status(response.getHttpStatus()).body(response);
-    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<BaseResponse> handlerException(MethodArgumentNotValidException ex) {
@@ -246,7 +227,7 @@ public class AlunoController {
 
         OperationCode operationCode;
         if (notblank) {
-            operationCode = OperationCode.ARGUMENT_Null;
+            operationCode = OperationCode.ARGUMENT_NullOrEmpty;
         } else if (size) {
             operationCode = OperationCode.VARIABLE_MAX_CHARACTER;
         } else if (pattern) {
@@ -274,5 +255,15 @@ public class AlunoController {
     }
 
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleJsonFormatError(HttpMessageNotReadableException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Requisição inválida — JSON mal formatado ou Campo invalidado");
+        body.put("message", "Verifique se o corpo JSON está correto. Erro de leitura: " + ex.getMostSpecificCause().getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
 
 }

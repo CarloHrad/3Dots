@@ -16,7 +16,7 @@ public enum OperationCode {
     PEDIDO_InvalidStatusForAction("21", "Ação não permitida para este status de pedido", HttpStatus.BAD_REQUEST),
     INVALID_RequestValue("22", "Requisição de Inserção inválido", HttpStatus.BAD_REQUEST),
     FILE_UploadFailed("30", "Falha ao efetuar upload do arquivo", HttpStatus.INTERNAL_SERVER_ERROR),
-    ARGUMENT_Null("31", "Campo não pode ser nulo", HttpStatus.BAD_REQUEST),
+    ARGUMENT_NullOrEmpty("31", "Campo não pode ser nulo", HttpStatus.BAD_REQUEST),
     COMMENT_NotFound("40", "Comentário(s) não encontrado(s)", HttpStatus.NOT_FOUND),
     COMMENT_DoesNotBelong("41", "Comentário não pertence a este pedido", HttpStatus.BAD_REQUEST),
     ARGUMENT_NotFound("42", "Não pôde ser encontrado a(s) entidade(s) relacionada(s)", HttpStatus.NOT_FOUND),

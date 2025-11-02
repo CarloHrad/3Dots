@@ -13,7 +13,7 @@ public record AdministradorDTO(
         @Email(message = "Email inválido")
         String email,
 
-        @NotBlank(message = "O telefone é obrigatório")
+        //@NotBlank(message = "O telefone é obrigatório")
         @Pattern(regexp = "\\(?\\d{2}\\)?\\s?9?\\d{4}-?\\d{4}", message = "Telefone deve estar no formato válido " +
                 "(ex: (11) 91234-5678 ou 1123456789)")
         String telefone,

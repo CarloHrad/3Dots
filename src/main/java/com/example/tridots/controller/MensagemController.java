@@ -3,7 +3,6 @@ package com.example.tridots.controller;
 import com.example.tridots.OperationCode.OperationCode;
 import com.example.tridots.dto.MensagemRequestDTO;
 import com.example.tridots.dto.MensagemResponseDTO;
-import com.example.tridots.dto.Pedidos.DeleteMsgDTO;
 import com.example.tridots.enums.Cargo;
 import com.example.tridots.model.Mensagem;
 import com.example.tridots.model.Pedido;
@@ -13,7 +12,6 @@ import com.example.tridots.repository.PedidoRepository;
 import com.example.tridots.service.BaseResponse;
 import com.example.tridots.service.MensagemService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +19,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -48,7 +50,17 @@ public class MensagemController {
     public ResponseEntity<?> adicionarComentario(
             @PathVariable("pedidoId") String pedidoId, @AuthenticationPrincipal Usuario usuario, @RequestBody MensagemRequestDTO dto) {
 
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new BaseResponse(
+                    OperationCode.UNAUTHORIZED.getCode(),
+                    OperationCode.UNAUTHORIZED.getDescription(),
+                    null,
+                    OperationCode.UNAUTHORIZED.getHttpStatus()
+            ));
+        }
+
         try {
+
             MensagemResponseDTO msg = mensagemService.enviarMsg(usuario, pedidoId, dto);
             return ResponseEntity.ok(msg);
 
@@ -220,7 +232,7 @@ public class MensagemController {
 
         OperationCode operationCode;
         if (notblank) {
-            operationCode = OperationCode.ARGUMENT_Null;
+            operationCode = OperationCode.ARGUMENT_NullOrEmpty;
         } else if (size) {
             operationCode = OperationCode.VARIABLE_MAX_CHARACTER;
         } else if (pattern) {
@@ -245,5 +257,16 @@ public class MensagemController {
                         null,
                         operationCode.getHttpStatus()
                 ));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleJsonFormatError(HttpMessageNotReadableException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Requisição inválida — JSON mal formatado ou Campo invalidado");
+        body.put("message", "Verifique se o corpo JSON está correto. Erro de leitura: " + ex.getMostSpecificCause().getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 }

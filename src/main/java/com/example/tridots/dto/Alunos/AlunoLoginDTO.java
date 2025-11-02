@@ -16,5 +16,6 @@ public record AlunoLoginDTO(
 
         @Column(nullable = false)
         @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        @NotBlank(message = "A senha é obrigatória")
         String password
 ) {}

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record PedidoRequestDTO(
-        @NotBlank(message = "O conteúdo do comentário é obrigatório")
+        @NotBlank(message = "O conteúdo do pedido é obrigatório")
         @Size(max = 500, message = "A descrição deve ter no máximo 500 caracteres")
         @Valid
         String descricao,

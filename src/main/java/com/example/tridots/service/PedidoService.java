@@ -16,6 +16,8 @@ import com.example.tridots.repository.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PedidoService {
@@ -43,10 +46,19 @@ public class PedidoService {
     @PreAuthorize("hasRole('ALUNO')")
     public BaseResponse criarPedido(String idAluno, MultipartFile file, PedidoRequestDTO dto) throws IOException {
 
-        Aluno userAluno = alunoRepository.findById(idAluno).orElseThrow(() -> {
+        Optional<Aluno> optAluno = alunoRepository.findById(idAluno);
+
+        if (optAluno.isEmpty()) {
             log.error("Aluno com id {} não encontrado!", idAluno);
-            return new RuntimeException("Aluno não encontrado!");
-        });
+            return new BaseResponse(
+                    OperationCode.LOGIN_NotFound.getCode(),
+                    OperationCode.LOGIN_NotFound.getDescription(),
+                    null,
+                    OperationCode.LOGIN_NotFound.getHttpStatus()
+            );
+        }
+
+        Aluno userAluno = optAluno.get();
 
         Arquivo arquivo = arquivoService.salvar(file);
         log.info("Arquivo salvo via CRIAR PEDIDO!");
@@ -60,7 +72,7 @@ public class PedidoService {
         pedido.setStatus(StatusPedido.PENDENTE);
         pedido.setData(LocalDateTime.now());
 
-        Pedido saved = pedidoRepository.save(pedido);
+        pedidoRepository.save(pedido);
         log.info("Pedido salvo!");
 
         PedidoResponseDTO pedidoDTO = new PedidoResponseDTO(
@@ -86,6 +98,17 @@ public class PedidoService {
 
     @PreAuthorize("hasRole('ALUNO')")
     public BaseResponse cancelarPedido(String idAluno, String idPedido) throws AccessDeniedException {
+
+
+        Optional<Pedido> pedidoOpt = pedidoRepository.findById(idPedido);
+
+        if (pedidoOpt.isEmpty()) {
+            return new BaseResponse(
+                    OperationCode.PEDIDO_NotFound.getCode(),
+                    OperationCode.PEDIDO_NotFound.getDescription(),
+                    null,
+                    OperationCode.PEDIDO_NotFound.getHttpStatus()
+            );}
 
         Aluno userAluno = alunoRepository.findById(idAluno).orElse(null);
         if (userAluno == null) {

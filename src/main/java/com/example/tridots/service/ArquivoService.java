@@ -30,10 +30,18 @@ public class ArquivoService {
 
     public Arquivo salvar(MultipartFile file) throws IOException {
 
-        List<String> extensoes = List.of("stl", "obj", "fbx", "3mf", "dae", "txt");
-        if (!extensoes.contains(file.getContentType())) {
-            throw new IllegalArgumentException("Tipo de arquivo não permitido: " + file.getContentType());
+        String nomeArquivo = file.getOriginalFilename();
+        if (nomeArquivo == null || !nomeArquivo.contains(".")) {
+            throw new IllegalArgumentException("Arquivo inválido, sem extensão: " + nomeArquivo);
         }
+
+        String extensao = nomeArquivo.substring(nomeArquivo.lastIndexOf('.') + 1).toLowerCase();
+        List<String> extensoesPermitidas = List.of("stl", "obj", "fbx", "3mf", "dae", "txt");
+
+        if (!extensoesPermitidas.contains(extensao)) {
+            throw new IllegalArgumentException("Tipo de arquivo não permitido: " + extensao);
+        }
+
 
 
         Path dir = Paths.get(localDir).toAbsolutePath();

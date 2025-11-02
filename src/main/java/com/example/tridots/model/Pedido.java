@@ -39,7 +39,7 @@ public class Pedido {
     @Column(name = "observacao")
     private String observacao;
 
-    @Column(name = "estimativaDias", nullable = false)
+    @Column(name = "estimativaDias")
     private Integer diasEstimados;
 
     @Column(nullable = false)
