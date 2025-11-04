@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos Realizados - UNISAL</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="left-header">      
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
+          </a>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <p>|</p>
+            <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
+            <p>|</p>
+            <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <a class="text-decoration-off" href="login.html">
+        <button class="btn-header-login deactivated">Faça login</button>
+      </a>
+
+      <div class="user-header">
+        <div class="user-dropdown">
+          <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
+          <div class="dropdown-menu">
+            <a href="editar-dados.html">Editar dados</a>
+            <a href="#">Sair</a>
+          </div>
+        </div>
+      </div>
+  </header>
+
+  <main class="pedidos-main">
+    <div class="layout-pedidos">
+
+      <!-- Filtros -->
+      <aside class="filtros-laterais">
+        <h2>Filtro</h2>
+        <hr>
+        <h3 class="status-pedido-filter-title">Status do pedido</h3>
+
+        <div class="tags">
+          <label class="tag-checkbox">
+            <input type="checkbox" data-status="pendente" checked>
+            Pendente
+          </label>
+          <label class="tag-checkbox">
+            <input type="checkbox" data-status="aceito" checked>
+            Aceito
+          </label>
+          <label class="tag-checkbox">
+            <input type="checkbox" data-status="em-producao" checked>
+            Em produção
+          </label>
+          <label class="tag-checkbox">
+            <input type="checkbox" data-status="finalizado" checked>
+            Finalizado
+          </label>
+          <label class="tag-checkbox">
+            <input type="checkbox" data-status="cancelado" checked>
+            Cancelado
+          </label>
+        </div>
+
+          <button class="clean-btn">Limpar tudo</button>
+      </aside>
+
+      <!-- Lista de pedidos -->
+      <section class="lista-pedidos">
+        <div class="pedido-card pendente">
+          <div class="pedido-header">
+            <h3 class="blue-color">Pedido #127</h3>
+            <span>Pedido feito <b>12/02/2025 às 17:56</b></span>
+          </div>
+          <div class="pedido-body">
+            <div><strong>Altura</strong><p>35 mm</p></div>
+            <div><strong>Largura</strong><p>45 mm</p></div>
+            <div><strong>Profundidade</strong><p>70 mm</p></div>
+            <div><strong>Descrição</strong><p>Maquete de um prédio de 6 andares</p></div>
+            <div><strong>Observação</strong><p>Preciso de 3 unidades iguais</p></div>
+            <div><strong>Status atual</strong>
+              <span class="status pending">Pendente</span>
+            </div>
+          </div>
+          <div class="pedido-actions">
+            <div><strong>Arquivo</strong>
+              <button class="btn-contact">Visualizar modelo 3D</button>
+              <button class="btn-contact btn-download"><img src="images/download-icon.svg">Baixar arquivo</button>
+            </div>
+            <div>
+              <button class="btn-delete">Cancelar pedido</button>
+              <a href="chat.html">
+                <button class="btn-contact">Entrar em contato</button>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="pedido-card finalizado">
+          <div class="pedido-header">
+            <h3 class="blue-color">Pedido #32</h3>
+            <span>Realizado em <b>10/02/2025 às 11:50</b> | Última atualização <b>15/02/2025 às 12:44</b></span>
+          </div>
+          <div class="pedido-body">
+            <div><strong>Altura</strong><p>35 mm</p></div>
+            <div><strong>Largura</strong><p>45 mm</p></div>
+            <div><strong>Profundidade</strong><p>70 mm</p></div>
+            <div><strong>Descrição</strong><p>Maquete de um prédio de 6 andares</p></div>
+            <div><strong>Observação</strong><p>Preciso de 3 unidades iguais</p></div>
+            <div><strong>Status atual</strong>
+              <span class="status finished">Finalizado</span>
+            </div>
+          </div>
+          <div class="pedido-actions">
+            <div>
+              <strong>Arquivo</strong>
+              <button class="btn-contact">Visualizar modelo 3D</button>
+              <button class="btn-contact btn-download"><img src="images/download-icon.svg">Baixar arquivo</button>
+            </div>
+            <a href="chat.html">
+              <button class="btn-contact">Entrar em contato</button>
+            </a>
+          </div>
+        </div>
+
+        <div class="pagination">
+          <button disabled>←</button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>→</button>
+        </div>
+        <div class="no-results-wrapper" style="display: none;">
+          <img src="images/no-results-illustration.png" alt="Sem resultados" class="no-results-img" />
+          <p class="no-results-text">Nenhum foi pedido encontrado.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+      <script>
+    // Dropdown menu usuário
+    const userPhoto = document.querySelector('.user-photo');
+  const dropdownMenu = document.querySelector('.dropdown-menu');
+
+  userPhoto.addEventListener('click', () => {
+    dropdownMenu.classList.toggle('show');
+  });
+
+  window.addEventListener('click', (e) => {
+    if (!document.querySelector('.user-dropdown').contains(e.target)) {
+      dropdownMenu.classList.remove('show');
+    }
+  });
+
+  // Filtros de status dos pedidos
+  document.addEventListener("DOMContentLoaded", () => {
+  const pedidos = document.querySelectorAll(".pedido-card");
+  const checkboxes = document.querySelectorAll(".tag-checkbox input[type='checkbox']");
+  const pagination = document.querySelector(".pagination");
+  const semResultados = document.querySelector(".no-results-wrapper");
+
+  function atualizarVisibilidade() {
+    const activeStatuses = Array.from(checkboxes)
+      .filter(cb => cb.checked)
+      .map(cb => cb.getAttribute("data-status"));
+
+    let algumVisivel = false;
+
+    pedidos.forEach(pedido => {
+      const status = pedido.classList[1];
+      const visivel = activeStatuses.includes(status);
+      pedido.style.display = visivel ? "block" : "none";
+      if (visivel) algumVisivel = true;
+    });
+
+    pagination.style.display = algumVisivel ? "flex" : "none";
+    semResultados.style.display = algumVisivel ? "none" : "block";
+  }
+
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener("change", atualizarVisibilidade);
+  });
+
+  const cleanBtn = document.querySelector(".clean-btn");
+  cleanBtn.addEventListener("click", () => {
+    checkboxes.forEach(cb => cb.checked = false);
+    atualizarVisibilidade();
+  });
+
+  atualizarVisibilidade(); // Executa na primeira carga
+});
+
+
+  </script>
+</body>
+</html>
