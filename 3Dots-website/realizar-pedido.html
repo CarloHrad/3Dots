@@ -5,152 +5,312 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fazer Pedido - UNISAL</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap JS (com Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </head>
-<body>
-<header>
-  <div class="left-header">
-    <div class="logo">
-      <img src="images/unisal-logo.png" alt="UNISAL Logo" />
+<body class="body-realizar-pedido">
+  <header>
+    <div class="left-header">      
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
+        </a>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <p>|</p>
+          <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
+          <p>|</p>
+          <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
+        </ul>
+      </nav>
     </div>
-    <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <p>|</p>
-        <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
-        <p>|</p>
-        <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
-      </ul>
-    </nav>
+
+    <a class="text-decoration-off" href="login.html">
+      <button class="btn-header-login deactivated">Faça login</button>
+    </a>
+
+    <div class="user-header">
+      <div class="user-dropdown">
+        <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
+        <div class="dropdown-menu">
+          <a href="editar-dados.html">Editar dados</a>
+          <a href="#">Sair</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="pedido-container">
+    <h1>Informe os dados do pedido</h1>
+
+    <form class="form-pedido" action="" method="post" enctype="multipart/form-data">
+      <div class="medidas">
+        <div class="campo-medida">
+          <label for="altura">Altura <a class="xyz-label">X</a></label>
+          <div class="input-medida">
+            <input id="altura" name="altura" inputmode="decimal">
+            <span class="unidade">mm</span>
+          </div>
+          <div class="mensagem-erro" id="erro-altura"></div>
+        </div>
+
+        <div class="campo-medida">
+          <label for="largura">Largura <a class="xyz-label">Y</a></label>
+          <div class="input-medida">
+            <input id="largura" class="" name="largura" inputmode="decimal">
+            <span class="unidade">mm</span>
+          </div>
+          <div class="mensagem-erro" id="erro-largura"></div>
+        </div>
+        
+        <div class="campo-medida">
+          <label for="profundidade">Profundidade <a class="xyz-label">Z</a></label>
+          <div class="input-medida">
+            <input id="profundidade" name="profundidade" inputmode="decimal">
+            <span class="unidade">mm</span>
+          </div>
+          <div class="mensagem-erro" id="erro-profundidade"></div>
+        </div>
+      </div>
+
+      <div class="descricao-obs">
+        <div class="campo-texto">
+          <label for="descricao">Descrição</label>
+          <textarea class="descricao-textarea" id="descricao" name="descricao" placeholder="Ex.: Maquete de um prédio de 6 andares" rows="4"></textarea>
+          <div class="mensagem-erro" id="erro-descricao"></div>
+        </div>
+        
+        <div class="campo-texto">
+          <label for="observacao">Observação <a class="xyz-label">(opcional)</a></label>
+          <textarea class="observacao-textarea" id="observacao" name="observacao" placeholder="Ex.: Faça 3 unidades iguais" rows="4"></textarea>
+        </div>
+      </div>
+
+      <div class="campo-arquivo">
+        <label class="arquivo-label" for="arquivo">Arquivo <span class="unidade">(.stl)<a class="xyz-label"> (opcional)</a></span></label>
+        <input type="file" id="arquivo" name="arquivo" class="inputfile" accept=".stl">
+
+          <div class="upload-wrapper">
+            <label for="arquivo" class="btn-upload"
+                  id="btnUpload"
+                  data-bs-placement="right"
+                  data-bs-custom-class="custom-popover"
+                  data-bs-title="Arquivo inválido"
+                  data-bs-content="Por favor, envie apenas arquivos com extensão .stl.">
+              <img class="upload-icon" src="images/upload-blue-icon.svg" alt="Upload">
+              Anexar arquivo
+            </label>
+          </div>
+
+        <div id="file-info" class="file-info"></div>
+      </div>
+
+
+      <button type="submit" class="btn-login">Realizar Pedido</button>
+    </form>
+  </section>
+
+  <div id="popup-sucesso" class="popup-sucesso">
+    <div class="popup-conteudo">
+      <img src="images/celebrating-icon.png" alt="Sucesso" class="popup-icon" />
+      <h2>Pedido enviado com sucesso!</h2>
+      <p>Seu pedido foi registrado. Você pode acompanhá-lo em "Meus Pedidos"</p>
+    </div>
   </div>
-  <div class="user-header">
-    <button class="login-btn">Olá João!</button>
-    <img src="images/user-photo.png" alt="Foto do usuário"/>
-  </div>
-</header>
 
-<section class="pedido-container">
-  <h1>Informe os dados do pedido</h1>
+  <script>
+    // Dropdown menu usuário
+    const userPhoto = document.querySelector('.user-photo');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
 
-  <form id="form-pedido" enctype="multipart/form-data">
-    <h2>Informações do pedido</h2>
+    userPhoto.addEventListener('click', () => {
+      dropdownMenu.classList.toggle('show');
+    });
 
-    <div class="medidas">
-      <div class="campo-medida">
-        <label for="altura">Altura (X)</label>
-        <div class="input-medida">
-          <input id="altura" name="altura" type="number" placeholder="35" required>
-          <span>mm</span>
-        </div>
-      </div>
+    window.addEventListener('click', (e) => {
+      if (!document.querySelector('.user-dropdown').contains(e.target)) {
+        dropdownMenu.classList.remove('show');
+      }
+    });
 
-      <div class="campo-medida">
-        <label for="largura">Largura (Y)</label>
-        <div class="input-medida">
-          <input id="largura" name="largura" type="number" placeholder="45" required>
-          <span>mm</span>
-        </div>
-      </div>
-
-      <div class="campo-medida">
-        <label for="profundidade">Profundidade (Z)</label>
-        <div class="input-medida">
-          <input id="profundidade" name="profundidade" type="number" placeholder="70" required>
-          <span>mm</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="descricao-obs">
-      <div class="campo-texto">
-        <label for="descricao">Descrição</label>
-        <textarea id="descricao" name="descricao" placeholder="Maquete de um prédio de 6 andares" required></textarea>
-      </div>
-
-      <div class="campo-texto">
-        <label for="observacao">Observação</label>
-        <textarea id="observacao" name="observacao" placeholder="Preciso de 3 unidades iguais"></textarea>
-      </div>
-    </div>
-
-    <div class="campo-arquivo">
-      <label for="arquivo">Arquivo</label>
-      <input type="file" id="arquivo" name="arquivo" class="inputfile" required>
-      <label for="arquivo" class="btn-upload">
-        <img src="images/upload-icon.svg" alt="Upload">
-        Anexar arquivo
-      </label>
-    </div>
-
-    <!-- área para exibir mensagem -->
-    <div id="mensagem-retorno" class="mensagem"></div>
-
-    <button type="submit" class="btn-login">Realizar Pedido</button>
-  </form>
-</section>
-
-<script>
-  document.getElementById("form-pedido").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const descricao = document.getElementById("descricao").value.trim();
-    const altura = parseFloat(document.getElementById("altura").value);
-    const largura = parseFloat(document.getElementById("largura").value);
-    const profundidade = parseFloat(document.getElementById("profundidade").value);
-    const observacao = document.getElementById("observacao").value.trim();
-    const arquivo = document.getElementById("arquivo").files[0];
-    const mensagemDiv = document.getElementById("mensagem-retorno");
-
-    // Função auxiliar para exibir mensagens
-    function mostrarMensagem(texto, tipo) {
-      mensagemDiv.textContent = texto;
-      mensagemDiv.className = "mensagem " + tipo;
-      mensagemDiv.style.display = "block";
-    }
-
-    mensagemDiv.style.display = "none";
-
-    // Validações básicas
-    if (!descricao || !altura || !largura || !profundidade) {
-      mostrarMensagem("Por favor, preencha todos os campos obrigatórios.", "erro");
-      return;
-    }
-
-    if (!arquivo) {
-      mostrarMensagem("É necessário anexar um arquivo antes de enviar o pedido.", "erro");
-      return;
-    }
-
-    // Criação do JSON e do FormData
-    const pedido = { descricao, altura, largura, profundidade, observacao };
-    const formData = new FormData();
-    formData.append("file", arquivo);
-    formData.append("pedido", new Blob([JSON.stringify(pedido)], { type: "application/json" }));
-
-    try {
-      const response = await fetch("http://app:9090/pedido/criar", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoLWFwaSIsInN1YiI6Impvc2UuZnJlaXRhc0B0cmlkb3RzLmNvbSIsImV4cCI6MTc2MjEyMTc4M30.QkBgsUdgx7CPrYkb7fQerXxtrbLdPmfYVMZyb8cyGXA"
-        },
-        body: formData
+    // Mover para o próximo campo ao pressionar Enter em textarea
+    document.querySelectorAll('textarea').forEach((textarea, index, list) => {
+      textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const next = list[index + 1] || document.querySelector('input[type="file"]');
+          if (next) next.focus();
+        }
       });
+    });
 
-      const result = await response.json();
+  // Validação do arquivo .stl
+  const inputArquivo = document.getElementById('arquivo');
+  const fileInfo = document.getElementById('file-info');
 
-      if (!response.ok) {
-        const msgErro = result?.message || "Erro ao enviar o pedido. Verifique os dados e tente novamente.";
-        mostrarMensagem("❌ " + msgErro, "erro");
+  inputArquivo.addEventListener('change', () => {
+    const file = inputArquivo.files[0];
+    if (file) {
+      if (!file.name.toLowerCase().endsWith('.stl')) {
+        // Cria popover manualmente
+        const popover = bootstrap.Popover.getInstance(btnUpload);
+        if (popover) {
+          popover.show();
+        } else {
+          new bootstrap.Popover(btnUpload, {
+            trigger: 'manual',
+            placement: 'right',
+            customClass: 'custom-popover',
+            title: 'Arquivo inválido',
+            content: 'Por favor, envie apenas arquivos com extensão .stl.',
+          }).show();
+        }
+
+        inputArquivo.value = '';
+        fileInfo.textContent = '';
+
+        setTimeout(() => {
+          bootstrap.Popover.getInstance(btnUpload)?.hide();
+        }, 6000);
+
         return;
       }
 
-      mostrarMensagem("✅ Pedido criado com sucesso!", "sucesso");
-      document.getElementById("form-pedido").reset();
+      
+      // Remove mensagem de erro se o arquivo for válido
+      const erroArquivo = document.querySelector('.popover-arquivo');
+      if (erroArquivo) erroArquivo.remove();
 
-    } catch (error) {
-      console.error(error);
-      mostrarMensagem("❌ Erro inesperado. Verifique sua conexão com o servidor.", "erro");
+      const tamanhoKB = (file.size / 1024).toFixed(2);
+      fileInfo.textContent = `Arquivo anexado: ${file.name} (${tamanhoKB} KB)`;
+    } else {
+      fileInfo.textContent = '';
+    }
+
+      document.getElementById('btnUpload').classList.remove('input-invalido');
+
+  });
+
+    // Função para mostrar popover de erro
+    function mostrarPopoverArquivo(mensagem) {
+      const existente = document.querySelector('.popover-arquivo');
+      if (existente) existente.remove();
+
+      const popover = document.createElement('div');
+      popover.className = 'popover-arquivo';
+      popover.textContent = mensagem;
+
+      const uploadWrapper = document.querySelector('.upload-wrapper');
+      uploadWrapper.appendChild(popover);
+
+      document.getElementById('btnUpload').classList.add('input-invalido');
+    }
+
+function validarMedidasMaximas() {
+  const campos = [
+    { id: 'altura', erroId: 'erro-altura' },
+    { id: 'largura', erroId: 'erro-largura' },
+    { id: 'profundidade', erroId: 'erro-profundidade' }
+  ];
+
+  let medidasValidas = true;
+
+  campos.forEach(({ id, erroId }) => {
+    const input = document.getElementById(id);
+    const erro = document.getElementById(erroId);
+    const valor = parseFloat(input.value.replace(',', '.'));
+
+    // Limpa mensagens anteriores
+    if (valor <= 200 && valor > 0) {
+      erro.textContent = '';
+      input.classList.remove('input-invalido');
+    }
+
+    if (isNaN(valor)) return;
+
+    if (valor > 200) {
+      erro.textContent = 'Valor inválido. Deve ser menor ou igual a 200mm.';
+      input.classList.add('input-invalido');
+      medidasValidas = false;
     }
   });
-</script>
+
+  return medidasValidas;
+}
+
+
+document.querySelector('.form-pedido').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const requiredFields = form.querySelectorAll('[required]');
+  let isValid = true;
+
+  const camposObrigatorios = [
+  { id: 'altura', erroId: 'erro-altura' },
+  { id: 'largura', erroId: 'erro-largura' },
+  { id: 'profundidade', erroId: 'erro-profundidade' },
+  { id: 'descricao', erroId: 'erro-descricao' }
+];
+
+camposObrigatorios.forEach(({ id, erroId }) => {
+  const input = document.getElementById(id);
+  const erro = document.getElementById(erroId);
+
+  erro.textContent = '';
+  input.classList.remove('input-invalido');
+
+  if (!input.value.trim()) {
+    erro.textContent = 'Este campo é obrigatório.';
+    input.classList.add('input-invalido');
+    isValid = false;
+  }
+});
+
+  requiredFields.forEach(field => {
+    field.classList.remove('input-invalido');
+  });
+
+  requiredFields.forEach(field => {
+    if (field.id !== 'observacao' && !field.value.trim()) {
+      field.classList.add('input-invalido');
+      isValid = false;
+    }
+  });
+
+  const medidasValidas = validarMedidasMaximas();
+  if (!medidasValidas) isValid = false;
+
+  const arquivoInput = document.getElementById('arquivo');
+  const popup = document.getElementById('popup-sucesso');
+
+  const popoverExistente = document.querySelector('.popover-arquivo');
+  if (popoverExistente) popoverExistente.remove();
+
+  if (!isValid) return;
+
+  popup.classList.add('show');
+  setTimeout(() => {
+    popup.classList.remove('show');
+  }, 4000);
+
+});
+
+    // Permitir apenas números, ponto ou vírgula nos campos de medida
+    document.querySelectorAll('#altura, #largura, #profundidade').forEach(input => {
+      input.addEventListener('input', (e) => {
+        e.target.value = e.target.value
+          .replace(/[^\d.,]/g, '')
+          .replace(/(,.*?,)/g, ',')
+          .replace(/(\..*\.)/g, '.')
+          .replace(/[,\.](?=.*[,\.])/g, '');
+      });
+    });
+  </script>
 </body>
 </html>

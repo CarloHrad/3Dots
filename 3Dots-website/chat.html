@@ -6,11 +6,13 @@
     <title>UNISAL - Chat</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="body-chat">
     <header>
       <div class="left-header">      
         <div class="logo">
-          <img src="images/unisal-logo.png" alt="UNISAL Logo" />
+          <a href="index.html">
+            <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
+          </a>
         </div>
         <nav>
           <ul>
@@ -22,17 +24,31 @@
           </ul>
         </nav>
       </div>
+
+      <a class="text-decoration-off" href="login.html">
+        <button class="btn-header-login deactivated">Faça login</button>
+      </a>
+
       <div class="user-header">
-        <button class="login-btn">Olá João!</button>
-        <img src="images/user-photo.png" alt="Foto do usuário"/>
+        <div class="user-dropdown">
+          <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
+          <div class="dropdown-menu">
+            <a href="editar-dados.html">Editar dados</a>
+            <a href="#">Sair</a>
+          </div>
+        </div>
       </div>
+      
     </header>
 
     <div class="container">
         <aside class="sidebar">
-            <h4>Pedido #127</h4>
-            <img src="images/user-photo.png" alt="Admin" style="border-radius:50%; border:3px solid #f02c2c; margin:20px 0;">
-            <h3>Administrador</h3>
+            <div class="user-chat">
+              <h4 class="blue-color">Pedido #127</h4>
+              <img src="images/user-photo.png" alt="Admin" style="border-radius:50%; border:3px solid #f02c2c; margin:20px 0;">
+              <h3>Administrador</h3>
+            </div>
+            <img src="images/talk-illustration.png" alt="talking-illustration" class="talking-img">
         </aside>
 
         <main class="chat-area" id="chat">
@@ -67,7 +83,11 @@
 
             <div class="input-area">
                 <input type="text" id="mensagem" placeholder="Escreva sua mensagem">
-                <button id="enviar">📨</button>
+                <div class="btn-chat-send">
+                  <button id="enviar">
+                    <img src="images/send-icon.svg">
+                  </button>
+                </div>
             </div>
         </main>
     </div>
@@ -77,22 +97,53 @@
     const enviar = document.getElementById('enviar');
     const chat = document.getElementById('chat');
 
-    enviar.addEventListener('click', () => {
-        const texto = input.value.trim();
-        if (texto !== "") {
-            const horaAtual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const novaMsg = document.createElement('div');
-            novaMsg.classList.add('mensagem', 'user');
-            novaMsg.innerHTML = `${texto}<span class="hora">${horaAtual}</span>`;
-            chat.insertBefore(novaMsg, document.querySelector('.input-area'));
-            input.value = '';
-            chat.scrollTop = chat.scrollHeight;
+    let ultimaData = null; // Armazena a última data exibida
+
+enviar.addEventListener('click', () => {
+    const texto = input.value.trim();
+    if (texto !== "") {
+        const agora = new Date();
+        const horaAtual = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dataAtual = agora.toLocaleDateString('pt-BR'); // Ex: 01/11/2025
+
+        // Verifica se é uma nova data
+        if (dataAtual !== ultimaData) {
+            const novaData = document.createElement('div');
+            novaData.classList.add('data');
+            novaData.textContent = dataAtual;
+            chat.querySelector('.input-area').insertAdjacentElement('beforebegin', novaData);
+            ultimaData = dataAtual;
         }
-    });
+
+        // Cria a nova mensagem
+        const novaMsg = document.createElement('div');
+        novaMsg.classList.add('mensagem', 'user');
+        novaMsg.innerHTML = `${texto}<span class="hora">${horaAtual}</span>`;
+        chat.querySelector('.input-area').insertAdjacentElement('beforebegin', novaMsg);
+
+        input.value = '';
+        chat.scrollTop = chat.scrollHeight;
+    }
+});
+
 
     input.addEventListener('keypress', e => {
         if (e.key === 'Enter') enviar.click();
     });
+
+    // Dropdown menu usuário
+  const userPhoto = document.querySelector('.user-photo');
+  const dropdownMenu = document.querySelector('.dropdown-menu');
+
+  userPhoto.addEventListener('click', () => {
+    dropdownMenu.classList.toggle('show');
+  });
+
+  window.addEventListener('click', (e) => {
+    if (!document.querySelector('.user-dropdown').contains(e.target)) {
+      dropdownMenu.classList.remove('show');
+    }
+  });
 </script>
 </body>
 </html>

@@ -10,7 +10,9 @@
     <header>
       <div class="left-header">      
         <div class="logo">
-          <img src="images/unisal-logo.png" alt="UNISAL Logo" />
+          <a href="index.html">
+            <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
+          </a>
         </div>
         <nav>
           <ul>
@@ -22,11 +24,23 @@
           </ul>
         </nav>
       </div>
+
+      <a class="text-decoration-off" href="login.html">
+        <button class="btn-header-login deactivated">Faça login</button>
+      </a>
+
       <div class="user-header">
-        <button class="login-btn">Olá João!</button>
-        <img src="images/user-photo.png" alt="Foto do usuário"/>
+        <div class="user-dropdown">
+          <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
+          <div class="dropdown-menu">
+            <a href="editar-dados.html">Editar dados</a>
+            <a href="#">Sair</a>
+          </div>
+        </div>
       </div>
+      
     </header>
+
   <main class="login-main">
     <h2>Editar dados</h2>
 
@@ -57,6 +71,20 @@
       e.preventDefault();
       alert('Dados atualizados com sucesso!');
     });
+
+    // Dropdown menu usuário
+    const userPhoto = document.querySelector('.user-photo');
+  const dropdownMenu = document.querySelector('.dropdown-menu');
+
+  userPhoto.addEventListener('click', () => {
+    dropdownMenu.classList.toggle('show');
+  });
+
+  window.addEventListener('click', (e) => {
+    if (!document.querySelector('.user-dropdown').contains(e.target)) {
+      dropdownMenu.classList.remove('show');
+    }
+  });
   </script>
 </body>
 </html>
