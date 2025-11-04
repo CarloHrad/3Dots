@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/aluno/getu").permitAll()
                         .requestMatchers(HttpMethod.GET, "/aluno/get").permitAll()
                         .requestMatchers(HttpMethod.POST, "/aluno/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/pedido/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/aluno/usuarios").permitAll()
                         .requestMatchers("/h2-console").permitAll()
                         .requestMatchers( "/h2-console/**").permitAll()

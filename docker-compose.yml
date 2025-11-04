@@ -14,7 +14,6 @@ services:
       - mysql_data:/var/lib/mysql
       - ./uploads:/app/uploads
 
-
   app:
     build: .
     container_name: spring-app
@@ -22,13 +21,23 @@ services:
     depends_on:
       - mysql
     ports:
-      - "8080:8080"
+      - "9090:9090"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/3dots
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/3dots
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
+
+  frontend:
+    image: nginx:latest
+    container_name: tridots-frontend
+    depends_on:
+      - app
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    ports:
+      - "90:90"
 
 volumes:
   mysql_data:

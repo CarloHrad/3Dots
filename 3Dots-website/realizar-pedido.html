@@ -7,82 +7,150 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <div class="left-header">      
-      <div class="logo">
-        <img src="images/unisal-logo.png" alt="UNISAL Logo" />
-      </div>
-      <nav>
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <p>|</p>
-          <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
-          <p>|</p>
-          <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
-        </ul>
-      </nav>
+<header>
+  <div class="left-header">
+    <div class="logo">
+      <img src="images/unisal-logo.png" alt="UNISAL Logo" />
     </div>
-    <div class="user-header">
-      <button class="login-btn">Olá João!</button>
-      <img src="images/user-photo.png" alt="Foto do usuário"/>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <p>|</p>
+        <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
+        <p>|</p>
+        <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="user-header">
+    <button class="login-btn">Olá João!</button>
+    <img src="images/user-photo.png" alt="Foto do usuário"/>
+  </div>
+</header>
+
+<section class="pedido-container">
+  <h1>Informe os dados do pedido</h1>
+
+  <form id="form-pedido" enctype="multipart/form-data">
+    <h2>Informações do pedido</h2>
+
+    <div class="medidas">
+      <div class="campo-medida">
+        <label for="altura">Altura (X)</label>
+        <div class="input-medida">
+          <input id="altura" name="altura" type="number" placeholder="35" required>
+          <span>mm</span>
+        </div>
+      </div>
+
+      <div class="campo-medida">
+        <label for="largura">Largura (Y)</label>
+        <div class="input-medida">
+          <input id="largura" name="largura" type="number" placeholder="45" required>
+          <span>mm</span>
+        </div>
+      </div>
+
+      <div class="campo-medida">
+        <label for="profundidade">Profundidade (Z)</label>
+        <div class="input-medida">
+          <input id="profundidade" name="profundidade" type="number" placeholder="70" required>
+          <span>mm</span>
+        </div>
+      </div>
     </div>
-  </header>
 
-  <section class="pedido-container">
-    <h1>Informe os dados do pedido</h1>
-
-    <form class="form-pedido" action="#" method="post" enctype="multipart/form-data">
-      <h2>Informações do pedido</h2>
-
-      <div class="medidas">
-        <div class="campo-medida">
-          <label for="altura">Altura X</label>
-          <div class="input-medida">
-            <input id="altura" name="altura" placeholder="35" required>
-            <span>mm</span>
-          </div>
-        </div>
-
-        <div class="campo-medida">
-          <label for="largura">Largura Y</label>
-          <div class="input-medida">
-            <input id="largura" name="largura" placeholder="45" required>
-            <span>mm</span>
-          </div>
-        </div>
-
-        <div class="campo-medida">
-          <label for="profundidade">Profundidade Z</label>
-          <div class="input-medida">
-            <input id="profundidade" name="profundidade" placeholder="70" required>
-            <span>mm</span>
-          </div>
-        </div>
+    <div class="descricao-obs">
+      <div class="campo-texto">
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" name="descricao" placeholder="Maquete de um prédio de 6 andares" required></textarea>
       </div>
 
-      <div class="descricao-obs">
-        <div class="campo-texto">
-          <label for="descricao">Descrição</label>
-          <textarea id="descricao" name="descricao" placeholder="Maquete de um prédio de 6 andares" required></textarea>
-        </div>
-
-        <div class="campo-texto">
-          <label for="observacao">Observação</label>
-          <textarea id="observacao" name="observacao" placeholder="Preciso de 3 unidades iguais"></textarea>
-        </div>
+      <div class="campo-texto">
+        <label for="observacao">Observação</label>
+        <textarea id="observacao" name="observacao" placeholder="Preciso de 3 unidades iguais"></textarea>
       </div>
+    </div>
 
-      <div class="campo-arquivo">
-        <label for="observacao">Arquivo</label>
-        <input type="file" id="arquivo" name="arquivo" class="inputfile">
-        <label for="arquivo" class="btn-upload">
-          <img src="images/upload-icon.svg" alt="Upload">
-          Anexar arquivo
-        </label>
-      </div>
+    <div class="campo-arquivo">
+      <label for="arquivo">Arquivo</label>
+      <input type="file" id="arquivo" name="arquivo" class="inputfile" required>
+      <label for="arquivo" class="btn-upload">
+        <img src="images/upload-icon.svg" alt="Upload">
+        Anexar arquivo
+      </label>
+    </div>
 
-      <button type="submit" class="btn-login">Realizar Pedido</button>
-    </form>
-  </section>
+    <!-- área para exibir mensagem -->
+    <div id="mensagem-retorno" class="mensagem"></div>
+
+    <button type="submit" class="btn-login">Realizar Pedido</button>
+  </form>
+</section>
+
+<script>
+  document.getElementById("form-pedido").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const descricao = document.getElementById("descricao").value.trim();
+    const altura = parseFloat(document.getElementById("altura").value);
+    const largura = parseFloat(document.getElementById("largura").value);
+    const profundidade = parseFloat(document.getElementById("profundidade").value);
+    const observacao = document.getElementById("observacao").value.trim();
+    const arquivo = document.getElementById("arquivo").files[0];
+    const mensagemDiv = document.getElementById("mensagem-retorno");
+
+    // Função auxiliar para exibir mensagens
+    function mostrarMensagem(texto, tipo) {
+      mensagemDiv.textContent = texto;
+      mensagemDiv.className = "mensagem " + tipo;
+      mensagemDiv.style.display = "block";
+    }
+
+    mensagemDiv.style.display = "none";
+
+    // Validações básicas
+    if (!descricao || !altura || !largura || !profundidade) {
+      mostrarMensagem("Por favor, preencha todos os campos obrigatórios.", "erro");
+      return;
+    }
+
+    if (!arquivo) {
+      mostrarMensagem("É necessário anexar um arquivo antes de enviar o pedido.", "erro");
+      return;
+    }
+
+    // Criação do JSON e do FormData
+    const pedido = { descricao, altura, largura, profundidade, observacao };
+    const formData = new FormData();
+    formData.append("file", arquivo);
+    formData.append("pedido", new Blob([JSON.stringify(pedido)], { type: "application/json" }));
+
+    try {
+      const response = await fetch("http://app:9090/pedido/criar", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoLWFwaSIsInN1YiI6Impvc2UuZnJlaXRhc0B0cmlkb3RzLmNvbSIsImV4cCI6MTc2MjEyMTc4M30.QkBgsUdgx7CPrYkb7fQerXxtrbLdPmfYVMZyb8cyGXA"
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        const msgErro = result?.message || "Erro ao enviar o pedido. Verifique os dados e tente novamente.";
+        mostrarMensagem("❌ " + msgErro, "erro");
+        return;
+      }
+
+      mostrarMensagem("✅ Pedido criado com sucesso!", "sucesso");
+      document.getElementById("form-pedido").reset();
+
+    } catch (error) {
+      console.error(error);
+      mostrarMensagem("❌ Erro inesperado. Verifique sua conexão com o servidor.", "erro");
+    }
+  });
+</script>
 </body>
 </html>

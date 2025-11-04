@@ -100,18 +100,67 @@
 </body>
 
 <script>
-    // Mostrar/ocultar senha
-    const toggleSenha = document.getElementById("toggleSenha");
-    const senhaInput = document.getElementById("senha");
 
-    toggleSenha.addEventListener("click", () => {
-      const tipo = senhaInput.type === "password" ? "text" : "password";
-      senhaInput.type = tipo;
-      const img = toggleSenha.querySelector("img");
-      img.src = tipo === "password"
-        ? "images/visibility-off-icon.svg"
-        : "images/visibility-icon.svg";
-    });
+  document.querySelector(".form-cadastro").addEventListener("submit", async (event) => {
+event.preventDefault();
+
+const nome = document.getElementById("nome").value;
+const curso = document.getElementById("curso").value;
+const raAluno = document.getElementById("ra").value;
+const emailInstitucional = document.getElementById("email").value;
+const password = document.getElementById("senha").value;
+
+// Extrai número do semestre (ex: "1° Semestre" → 1)
+const semestreTexto = document.getElementById("semestre").value;
+const semestre = parseInt(semestreTexto);
+
+const aluno = {
+  nome,
+  emailInstitucional,
+  password,
+  raAluno,
+  curso,
+  semestre
+};
+
+try {
+  const response = await fetch("http://localhost:9090/aluno/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(aluno)
+  });
+
+  if (!response.ok) {
+    const erro = await response.json();
+    alert("Erro no cadastro: " + erro.message || response.statusText);
+    return;
+  }
+
+  const data = await response.json();
+  alert("Cadastro realizado com sucesso!");
+  console.log("Resposta do backend:", data);
+
+  window.location.href = "login.html"; // redireciona para login após sucesso
+} catch (error) {
+  console.error("Erro ao cadastrar:", error);
+  alert("Erro ao conectar com o servidor.");
+}
+});
+
+  // Mostrar/ocultar senha
+  const toggleSenha = document.getElementById("toggleSenha");
+  const senhaInput = document.getElementById("senha");
+
+  toggleSenha.addEventListener("click", () => {
+    const tipo = senhaInput.type === "password" ? "text" : "password";
+    senhaInput.type = tipo;
+    const img = toggleSenha.querySelector("img");
+    img.src = tipo === "password"
+      ? "images/visibility-off-icon.svg"
+      : "images/visibility-icon.svg";
+  });
 
   </script>
 
