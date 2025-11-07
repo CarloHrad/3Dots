@@ -1,5 +1,6 @@
 package com.example.tridots.model;
 
+import com.example.tridots.enums.Cargo;
 import com.example.tridots.enums.StatusMatricula;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,6 @@ import lombok.Setter;
 @PrimaryKeyJoinColumn(name = "idUsuario")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class Aluno extends Usuario {
 
@@ -29,4 +29,9 @@ public class Aluno extends Usuario {
     @Enumerated(EnumType.STRING)
     @Column(name = "statusMatricula", nullable = false)
     private StatusMatricula statusMatricula;
+
+    public Aluno() {
+        this.setCargo(Cargo.ALUNO);
+        this.setStatusMatricula(StatusMatricula.ATIVA);
+    }
 }

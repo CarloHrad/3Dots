@@ -33,16 +33,36 @@ public class SecurityFilter extends OncePerRequestFilter {
         try {
 
             String path = request.getRequestURI();
-            if (path.equals("/aluno/login") || path.equals("/aluno/register")) {
-                System.out.println("Pulando filtro para " + path);
+            if (
+                    path.equals("/aluno/login") ||
+                            path.equals("/aluno/register") ||
+                            path.startsWith("/h2-console/") ||
+                            path.startsWith("/css/") ||
+                            path.startsWith("/js/") ||
+                            path.startsWith("/images/") ||
+                            path.equals("/") ||
+                            path.equals("/index.html") ||
+                            path.equals("/cadastro.html") ||
+                            path.equals("/login.html") ||
+                            path.equals("/realizar-pedido.html") ||
+                            path.equals("/style.css")) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
 
+
             var token = this.recoverToken(request);
 
             if (token == null || tokenService.validateToken(token).isEmpty()) {
+
+                if (token == null) {
+                    logger.error("TOKEN NULO NULL");
+                }
+                if (tokenService.validateToken(token).isEmpty()) {
+                    logger.error("TOKEN SERVICE VALIDATE TOKEN IS EMPTY VAZIO");
+                }
+
                 response.setStatus(HttpStatus.FORBIDDEN.value());
                 response.setContentType("application/json");
 
@@ -64,14 +84,12 @@ public class SecurityFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (UsernameNotFoundException ex) {
-            System.out.println("UsernameNot Found Exception Log");
+            System.out.println("UsernameNot Found Exception Log - Do Filter Internal");
             SecurityContextHolder.clearContext();
         } catch (Exception ex) {
-            System.out.println("Exception Log");
+            System.out.println("Exception Log - Do Filter Internal");
             SecurityContextHolder.clearContext();
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private String recoverToken(HttpServletRequest request) {

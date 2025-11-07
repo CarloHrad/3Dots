@@ -71,7 +71,7 @@ public class AlunoController {
             return ResponseEntity.status(response.getHttpStatus()).body(response);
         }
 
-        AlunoResponseDTO alunoResponseDTO = alunoService.createAluno(alunoRegisterDTO);
+        BaseResponse alunoResponseDTO = alunoService.createAluno(alunoRegisterDTO);
 
         BaseResponse response = new BaseResponse(
                 OperationCode.SUCCESSFUL_Operation.getCode(),

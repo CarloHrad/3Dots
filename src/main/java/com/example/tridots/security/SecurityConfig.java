@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,6 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -44,32 +48,63 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
+                .authorizeHttpRequests(auth -> auth
+                        // Libera frontend estático
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/cadastro.html",
+                                "/login.html",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico",
+                                "/realizar-pedido.html",
+                                "/pedidos-feitos.html"
+                        ).permitAll()
+
+                        // Endpoints públicos
+                        .requestMatchers( "/cadastro.html").permitAll()
                         .requestMatchers(HttpMethod.POST, "/aluno/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/aluno/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/aluno/getu").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/aluno/get").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/aluno/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/pedido/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/aluno/usuarios").permitAll()
-                        .requestMatchers("/h2-console").permitAll()
-                        .requestMatchers( "/h2-console/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/arquivo/upload").permitAll()
+
+
+                        .requestMatchers(HttpMethod.POST, "/pedido/criar").authenticated()
+
+                        // H2 console
+                        .requestMatchers("/h2-console/**").permitAll()
+
+                        // Endpoints de admin
                         .requestMatchers("/admin/**").hasRole("ADMINISTRADOR")
-                        .anyRequest().authenticated() //any request = qualquer role, só precisa estar autenticado
+
+                        // Demais endpoints exigem autenticação
+                        .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("*"); // ou o domínio do seu frontend
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
 
 }

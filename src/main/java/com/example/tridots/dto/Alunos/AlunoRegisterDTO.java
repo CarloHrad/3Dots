@@ -9,7 +9,7 @@ public record AlunoRegisterDTO(
         @NotBlank(message = "O nome é obrigatório")
         @Size(max = 50, message = "Nome deve ter no máximo 50 caracteres")
         @Pattern(regexp = "^[A-Za-zÀ-ÿ\\s]+$", message = "Nome deve ter apenas letras")
-        @Column(name="nome", unique = true)
+        @Column(name="nome")
         String nome,
 
         @NotBlank(message = "O email é obrigatório")
@@ -19,7 +19,6 @@ public record AlunoRegisterDTO(
         String emailInstitucional,
 
         @Column(nullable = false)
-        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
         @NotBlank(message = "A senha é obrigatório")
         @Size(min = 4, message = "Senha deve possuir no mínimo 4 caracteres")
         String password,

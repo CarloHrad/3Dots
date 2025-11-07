@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNISAL - Chat</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="body-chat">
+    <header>
+      <div class="left-header">      
+        <div class="logo">
+          <a href="index.html">
+            <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
+          </a>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <p>|</p>
+            <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
+            <p>|</p>
+            <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <a class="text-decoration-off" href="login.html">
+        <button class="btn-header-login deactivated">Faça login</button>
+      </a>
+
+      <div class="user-header">
+        <div class="user-dropdown">
+          <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
+          <div class="dropdown-menu">
+            <a href="editar-dados.html">Editar dados</a>
+            <a href="#">Sair</a>
+          </div>
+        </div>
+      </div>
+      
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="user-chat">
+              <h4 class="blue-color">Pedido #127</h4>
+              <img src="images/user-photo.png" alt="Admin" style="border-radius:50%; border:3px solid #f02c2c; margin:20px 0;">
+              <h3>Administrador</h3>
+            </div>
+            <img src="images/talk-illustration.png" alt="talking-illustration" class="talking-img">
+        </aside>
+
+        <main class="chat-area" id="chat">
+            <div class="data">12/02/20205</div>
+
+            <div class="mensagem user">
+                Bom dia! Quanto tempo o produto vai demorar para ficar pronto?
+                <span class="hora">08:56</span>
+            </div>
+
+            <div class="mensagem admin">
+                Olá João! Seu pedido deve ficar pronto em 3 dias
+                <span class="hora">09:20</span>
+            </div>
+
+            <div class="mensagem user">
+                Está ótimo 👍
+                <span class="hora">09:22</span>
+            </div>
+
+            <div class="data">15/02/20205</div>
+
+            <div class="mensagem admin">
+                Bom dia! Seu produto está pronto para retirada 🎉
+                <span class="hora">10:32</span>
+            </div>
+
+            <div class="mensagem user">
+                Que ótimo! Vou buscar às 14h
+                <span class="hora">10:45</span>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="mensagem" placeholder="Escreva sua mensagem">
+                <div class="btn-chat-send">
+                  <button id="enviar">
+                    <img src="images/send-icon.svg">
+                  </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+    const input = document.getElementById('mensagem');
+    const enviar = document.getElementById('enviar');
+    const chat = document.getElementById('chat');
+
+    let ultimaData = null; // Armazena a última data exibida
+
+enviar.addEventListener('click', () => {
+    const texto = input.value.trim();
+    if (texto !== "") {
+        const agora = new Date();
+        const horaAtual = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dataAtual = agora.toLocaleDateString('pt-BR'); // Ex: 01/11/2025
+
+        // Verifica se é uma nova data
+        if (dataAtual !== ultimaData) {
+            const novaData = document.createElement('div');
+            novaData.classList.add('data');
+            novaData.textContent = dataAtual;
+            chat.querySelector('.input-area').insertAdjacentElement('beforebegin', novaData);
+            ultimaData = dataAtual;
+        }
+
+        // Cria a nova mensagem
+        const novaMsg = document.createElement('div');
+        novaMsg.classList.add('mensagem', 'user');
+        novaMsg.innerHTML = `${texto}<span class="hora">${horaAtual}</span>`;
+        chat.querySelector('.input-area').insertAdjacentElement('beforebegin', novaMsg);
+
+        input.value = '';
+        chat.scrollTop = chat.scrollHeight;
+    }
+});
+
+
+    input.addEventListener('keypress', e => {
+        if (e.key === 'Enter') enviar.click();
+    });
+
+    // Dropdown menu usuário
+  const userPhoto = document.querySelector('.user-photo');
+  const dropdownMenu = document.querySelector('.dropdown-menu');
+
+  userPhoto.addEventListener('click', () => {
+    dropdownMenu.classList.toggle('show');
+  });
+
+  window.addEventListener('click', (e) => {
+    if (!document.querySelector('.user-dropdown').contains(e.target)) {
+      dropdownMenu.classList.remove('show');
+    }
+  });
+</script>
+</body>
+</html>

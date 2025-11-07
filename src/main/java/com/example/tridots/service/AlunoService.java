@@ -33,8 +33,7 @@ public class AlunoService {
 
     private static final Logger log = LoggerFactory.getLogger(AlunoService.class);
 
-    @PreAuthorize("hasRole('ALUNO')")
-    public AlunoResponseDTO createAluno(AlunoRegisterDTO alunoRegisterDTO) {
+    public BaseResponse createAluno(AlunoRegisterDTO alunoRegisterDTO) {
 
         Aluno aluno = new Aluno();
         aluno.setNome(alunoRegisterDTO.nome());
@@ -49,7 +48,7 @@ public class AlunoService {
         Aluno newAluno = usuarioRepository.save(aluno);
         log.warn("Aluno cadastrado com sucesso!");
 
-        return new AlunoResponseDTO(
+        AlunoResponseDTO responseDTO = new AlunoResponseDTO(
                 aluno.getIdUsuario(),
                 aluno.getNome(),
                 aluno.getEmailInstitucional(),
@@ -58,6 +57,13 @@ public class AlunoService {
                 aluno.getSemestre(),
                 aluno.getStatusMatricula(),
                 aluno.getCargo()
+        );
+
+        return new BaseResponse(
+                OperationCode.SUCCESSFUL_Operation.getCode(),
+                OperationCode.SUCCESSFUL_Operation.getDescription(),
+                responseDTO,
+                OperationCode.SUCCESSFUL_Operation.getHttpStatus()
         );
     }
 
