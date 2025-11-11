@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <title>Detalhes do Pedido</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<main class="detalhe-main">
+    <h1>Pedido #<span id="numero-pedido"></span></h1>
+
+    <section class="pedido-info" id="pedido-detalhe"></section>
+
+    <hr />
+
+    <h2>Atualizar Status</h2>
+    <form id="form-status">
+        <label for="status">Novo Status:</label>
+        <select id="status">
+            <option value="PENDENTE">Pendente</option>
+            <option value="ACEITO">Aceito</option>
+            <option value="EM_PRODUCAO">Em Produção</option>
+            <option value="FINALIZADO">Finalizado</option>
+            <option value="CANCELADO">Cancelado</option>
+        </select>
+
+        <div id="campo-dias">
+            <label for="diasEstimados">Dias Estimados:</label>
+            <input type="number" id="diasEstimados" min="0"/>
+        </div>
+
+        <button type="submit">Salvar</button>
+    </form>
+</main>
+
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const idPedido = params.get("id");
+
+    async function carregarPedido() {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`http://localhost:8080/pedido/${idPedido}`, {
+    headers: { "Authorization": "Bearer " + token }
+  });
+
+  const baseResponse = await response.json();
+  const p = baseResponse.responseObject;
+
+  document.getElementById("numero-pedido").textContent = p.idPedido.slice(0, 6);
+
+  const dataPedido = new Date(p.data).toLocaleDateString("pt-BR");
+
+  let previsao = "Aguardando definição";
+  if (p.status !== "FINALIZADO" && p.diasEstimados != null) {
+      let d = new Date(p.data);
+      d.setDate(d.getDate() + p.diasEstimados);
+      previsao = d.toLocaleDateString("pt-BR");
+  }
+
+  if (p.status === "FINALIZADO" && p.dataFinalizacao) {
+      previsao = new Date(p.dataFinalizacao).toLocaleDateString("pt-BR");
+  }
+
+  document.getElementById("pedido-detalhe").innerHTML = `
+      <p><strong>Aluno:</strong> ${p.alunoDTO.nome} (${p.alunoDTO.raAluno})</p>
+      <p><strong>Descrição:</strong> ${p.descricao}</p>
+      <p><strong>Medidas:</strong> ${p.altura} × ${p.largura} × ${p.profundidade} cm</p>
+      <p><strong>Status atual:</strong> <span class="status ${p.status.toLowerCase()}">${p.status}</span></p>
+      <p><strong>Data do Pedido:</strong> ${dataPedido}</p>
+      <p><strong>Entrega:</strong> ${previsao}</p>
+  `;
+
+  document.getElementById("status").value = p.status;
+  document.getElementById("diasEstimados").value = p.diasEstimados ?? "";
+
+  controlarCampos(p.status);
+}
+
+function controlarCampos(status) {
+  const campoDias = document.getElementById("campo-dias");
+
+  if (status === "ACEITO" || status === "EM_PRODUCAO") {
+    campoDias.style.display = "block";
+  } else {
+    campoDias.style.display = "none";
+  }
+}
+
+document.getElementById("status").addEventListener("change", (e) => {
+  controlarCampos(e.target.value);
+});
+
+carregarPedido();
+
+    document.getElementById("form-status").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem("token");
+
+  const body = {
+    status: document.getElementById("status").value,
+    diasEstimados: document.getElementById("diasEstimados").value || null
+  };
+
+  const response = await fetch(`http://localhost:8080/admin/${idPedido}/status`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (response.ok) {
+    alert("Status atualizado com sucesso!");
+    location.reload();
+  } else {
+    alert("Erro ao atualizar status.");
+  }
+});
+
+
+</script>
+
+</body>
+</html>

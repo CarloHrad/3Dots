@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel Administrativo - Pedidos</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "/login.html";
+    }
+
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const role = payload.role;
+        const isAdmin = role === "ADMINISTRADOR";
+
+
+        if (!isAdmin) {
+            alert("Acesso negado.");
+            window.location.href = "/";
+        }
+    } catch (e) {
+        window.location.href = "/login.html";
+    }
+</script>
+
+
+
+<header>
+    <h1>Painel Administrativo</h1>
+</header>
+
+<main class="pedidos-main">
+    <section class="lista-pedidos" id="lista-pedidos">
+        <p id="loading">Carregando pedidos...</p>
+    </section>
+
+    <!-- Filtros laterais -->
+    <aside class="filtros-laterais">
+        <h2>Filtro</h2>
+        <hr />
+        <h3 class="status-pedido-filter-title">Status do pedido</h3>
+
+        <div class="tags">
+            <label class="tag-checkbox"><input type="checkbox" data-status="pendente" checked /> Pendente</label>
+            <label class="tag-checkbox"><input type="checkbox" data-status="aceito" checked /> Aceito</label>
+            <label class="tag-checkbox"><input type="checkbox" data-status="em-producao" checked /> Em produção</label>
+            <label class="tag-checkbox"><input type="checkbox" data-status="finalizado" checked /> Finalizado</label>
+            <label class="tag-checkbox"><input type="checkbox" data-status="cancelado" checked /> Cancelado</label>
+        </div>
+
+        <button class="clean-btn">Limpar tudo</button>
+    </aside>
+</main>
+
+<script>
+    const API_URL = "http://localhost:8080/admin/listar-pedidos";
+
+    document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    document.querySelector('.clean-btn').addEventListener('click', limparFiltros);
+
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const role = payload.role;
+        const isAdmin = role === "ADMINISTRADOR";
+
+
+
+        if (!isAdmin) {
+            alert("Acesso negado.");
+            window.location.href = "/";
+            return;
+        }
+
+        carregarPedidos(token); // Agora sim
+
+    } catch (e) {
+        window.location.href = "login.html";
+    }
+});
+
+async function carregarPedidos(token) {
+  const lista = document.getElementById("lista-pedidos");
+  const loading = document.getElementById("loading");
+
+
+  try {
+    const response = await fetch("http://localhost:8080/admin/listar-pedidos", {
+      method: "GET",
+    headers: {
+        "Authorization": "Bearer " + token
+    }
+    });
+
+    if (!response.ok) {
+      // Redireciona se token inválido
+      window.location.href = "acesso-negado.html";
+      return;
+    }
+
+    const baseResponse = await response.json();
+    const pedidos = baseResponse.responseObject;
+
+    loading.remove();
+
+    pedidos.forEach(p => {
+      const card = document.createElement("div");
+      card.classList.add("pedido-card", (p.status || "desconhecido").toLowerCase());
+
+      const data = new Date(p.data).toLocaleString("pt-BR");
+
+      const dataPedido = new Date(p.data);
+
+    let dataPrevista = null;
+
+    if (p.diasEstimados != null) {
+      dataPrevista = new Date(dataPedido);
+      dataPrevista.setDate(dataPrevista.getDate() + p.diasEstimados);
+    }
+
+
+      card.innerHTML = `
+  <h3>Pedido #${p.idPedido.slice(0, 6)}</h3>
+  <p><strong>Aluno:</strong> ${p.alunoDTO.nome} (${p.alunoDTO.raAluno})</p>
+
+  <p><strong>Descrição:</strong> ${p.descricao}</p>
+  <p><strong>Medidas:</strong>
+      ${p.altura}cm (A) × ${p.largura}cm (L) × ${p.profundidade}cm (P)
+  </p>
+
+  <p><strong>Status:</strong> ${p.status}</p>
+  <p><strong>Data do Pedido:</strong> ${dataPedido.toLocaleDateString("pt-BR")}</p>
+
+  <p><strong>Previsão de Entrega:</strong>
+      ${dataPrevista ? dataPrevista.toLocaleDateString("pt-BR") : "A definir"}
+  </p>
+
+  <button class="btn-contact" onclick="abrirDetalhes('${p.idPedido}')">Ver detalhes</button>
+`;
+
+      lista.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error(error);
+    loading.textContent = "Erro ao carregar pedidos";
+  }
+}
+
+
+    function abrirDetalhes(idPedido) {
+      window.location.href = `admin-pedido-detalhe.html?id=${idPedido}`;
+    }
+
+    function filtrarPedidos() {
+  const checkboxes = document.querySelectorAll('.tag-checkbox input');
+  const ativos = Array.from(checkboxes)
+    .filter(chk => chk.checked)
+    .map(chk => chk.dataset.status);
+
+  const cards = document.querySelectorAll('.pedido-card');
+
+  cards.forEach(card => {
+    // Pega o status da classe (ex: pendente, aceito, cancelado)
+    const statusCard = card.classList.contains('em-producao')
+      ? 'em-producao'
+      : card.classList.contains('pendente')
+      ? 'pendente'
+      : card.classList.contains('aceito')
+      ? 'aceito'
+      : card.classList.contains('finalizado')
+      ? 'finalizado'
+      : 'cancelado';
+
+    // Exibe apenas se o status estiver nos ativos
+    card.style.display = ativos.includes(statusCard) ? "block" : "none";
+  });
+}
+
+function limparFiltros() {
+  const checkboxes = document.querySelectorAll('.tag-checkbox input');
+  checkboxes.forEach(chk => chk.checked = false);
+  filtrarPedidos();
+}
+
+function mostrarFiltros() {
+  const checkboxes = document.querySelectorAll('.tag-checkbox input');
+  checkboxes.forEach(chk => chk.checked = true);
+  filtrarPedidos();
+}
+</script>
+
+</body>
+</html>

@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,8 +21,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     @Autowired
     SecurityFilter securityFilter;
@@ -52,7 +56,7 @@ public class SecurityConfig {
         http
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Libera frontend estático
@@ -64,18 +68,27 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
+                                "/webjars/**",
                                 "/favicon.ico",
                                 "/realizar-pedido.html",
-                                "/pedidos-feitos.html"
+                                "/pedidos-feitos.html",
+                                "/pedidos.html"
                         ).permitAll()
 
                         // Endpoints públicos
-                        .requestMatchers( "/cadastro.html").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/aluno/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/aluno/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/admin/listar-pedidos").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/pedido/atualizarStatus").hasRole("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/admin/{idPedido}/status").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/admin-pedidos.html", "/admin-pedido-detalhe.html").permitAll()
+
+
 
 
                         .requestMatchers(HttpMethod.POST, "/pedido/criar").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/pedido/meus-pedidos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/pedido/{idPedido}").authenticated()
 
                         // H2 console
                         .requestMatchers("/h2-console/**").permitAll()
@@ -92,17 +105,28 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("*"); // ou o domínio do seu frontend
-        configuration.addAllowedMethod("*");
-        configuration.addAllowedHeader("*");
+
         configuration.setAllowCredentials(true);
+
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://localhost:8080",
+                "https://seu-frontend.vercel.app"
+        ));
+
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+
+        configuration.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 

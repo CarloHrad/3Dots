@@ -123,7 +123,7 @@ public class AlunoControllerTest {
                 1
         );
 
-        mockMvc.perform(post("/aluno/register")
+        mockMvc.perform(post("/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(MockMvcResultMatchers.status().isConflict())
@@ -143,7 +143,7 @@ public class AlunoControllerTest {
                 1
         );
 
-        mockMvc.perform(post("/aluno/register")
+        mockMvc.perform(post("/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(MockMvcResultMatchers.status().isConflict())
@@ -163,7 +163,7 @@ public class AlunoControllerTest {
                 1
         );
 
-        mockMvc.perform(post("/aluno/register")
+        mockMvc.perform(post("/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())

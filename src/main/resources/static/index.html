@@ -1,109 +1,111 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UNISAL - Impressão 3D</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <script>
-    // Função genérica para verificar se o usuário está logado
-    function usuarioAutenticado() {
-      const token = localStorage.getItem("token");
-      return token !== null && token !== ""; // simples: tem token salvo
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNISAL - Impressão 3D</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="body-index">
+<header>
+  <div class="left-header">
+    <div class="logo">
+      <a href="index.html">
+        <img src="images/unisal-logo.png" alt="UNISAL Logo" />
+      </a>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li class="menu-restrito"><a href="realizar-pedido.html">Fazer Pedidos</a></li>
+        <li class="menu-restrito"><a href="pedidos.html">Meus Pedidos</a></li>
+        <li class="menu-frase deactivated"><a>⚙️ 3Dots! Imprima seus sonhos</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <a class="text-decoration-off" href="login.html">
+    <button class="btn-header-login deactivated">Faça login</button>
+  </a>
+
+  <div class="user-header">
+    <div class="user-dropdown">
+      <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
+      <div class="dropdown-menu">
+        <a href="editar-dados.html">Editar dados</a>
+        <a href="#" id="logout-link">Sair</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-text">
+    <h1 class="main-title">Imprima para o seu projeto</h1>
+    <p>
+      O campus São José do Centro Universitário Salesiano de São Paulo (UNISAL), na cidade de Campinas,
+      possui uma impressora 3D para uso interno. A partir de pedidos formais, os alunos podem requisitar
+      a impressão de modelos 3D para projetos acadêmicos.
+    </p>
+    <div class="buttons">
+      <a href="cadastro.html" class="btn-primary">Cadastre-se</a>
+      <a href="login.html" class="btn-outline">Faça login</a>
+    </div>
+  </div>
+  <div class="hero-image">
+    <img src="images/maquina-3d.png" alt="Impressora 3D" />
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token");
+    const menusRestritos = document.querySelectorAll(".menu-restrito");
+    const userHeader = document.querySelector(".user-header");
+    const btnLogin = document.querySelector(".btn-header-login");
+    const menuFrase = document.querySelector(".menu-frase");
+
+    // Esconde menus e mostra login dependendo do token
+    if (!token) {
+      menusRestritos.forEach(el => el.style.display = "none");
+      userHeader.style.display = "none";
+      btnLogin.style.display = "block";
+      menuFrase.style.display = "inline-block";
+    } else {
+      menusRestritos.forEach(el => el.style.display = "inline-block");
+      userHeader.style.display = "block";
+      btnLogin.style.display = "none";
+      menuFrase.style.display = "none";
     }
 
-    // Interceptar o clique no botão "Fazer Pedidos"
-    document.querySelector('a[href="realizar-pedido.html"]').addEventListener('click', (e) => {
-      if (!usuarioAutenticado()) {
-        e.preventDefault(); // impede de ir pra página restrita
-        alert("Você precisa estar logado para fazer pedidos!");
-        window.location.href = "login.html";
-      }
-    });
+    // Dropdown do usuário
+    const userPhoto = document.querySelector(".user-photo");
+    const dropdownMenu = document.querySelector(".dropdown-menu");
 
-    // Interceptar o clique em "Meus Pedidos"
-    document.querySelector('a[href="pedidos-feitos.html"]').addEventListener('click', (e) => {
-      if (!usuarioAutenticado()) {
+    if (userPhoto) {
+      userPhoto.addEventListener("click", () => {
+        dropdownMenu.classList.toggle("show");
+      });
+
+      window.addEventListener("click", (e) => {
+        if (!document.querySelector(".user-dropdown").contains(e.target)) {
+          dropdownMenu.classList.remove("show");
+        }
+      });
+    }
+
+    // Logout
+    const logoutLink = document.getElementById("logout-link");
+    if (logoutLink) {
+      logoutLink.addEventListener("click", (e) => {
         e.preventDefault();
-        alert("Faça login para ver seus pedidos!");
-        window.location.href = "login.html";
-      }
-    });
-  </script>
-
-  <body class="body-index">
-    <header>
-      <div class="left-header">      
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
-          </a>
-        </div>
-        <nav>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <p>|</p>
-            <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
-            <p>|</p>
-            <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
-          </ul>
-        </nav>
-      </div>
-
-      <a class="text-decoration-off" href="login.html">
-        <button class="btn-header-login deactivated">Faça login</button>
-      </a>
-
-      <div class="user-header">
-        <div class="user-dropdown">
-          <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
-          <div class="dropdown-menu">
-            <a href="editar-dados.html">Editar dados</a>
-            <a href="#">Sair</a>
-          </div>
-        </div>
-      </div>
-      
-    </header>
-
-    <section class="hero">
-      <div class="hero-text">
-        <h1 class="main-title">Imprima para o seu projeto</h1>
-        <p>
-          O campus São José do Centro Universitário Salesiano de São Paulo
-          (UNISAL), na cidade de Campinas, possui uma impressora 3D para uso
-          interno. A partir de pedidos formais, os alunos podem requisitar a
-          impressão de modelos 3D quando para uso em projetos acadêmicos,
-          facilitando assim a aquisição de peças específicas. Faça seu pedido!
-        </p>
-        <div class="buttons">
-          <a href="cadastro.html" class="btn-primary">Cadastre-se</a>
-          <a href="login.html" class="btn-outline">Faça login</a>
-        </div>
-      </div>
-      <div class="hero-image">
-        <img src="images/maquina-3d.png" alt="Impressora 3D" />
-      </div>
-    </section>
-
-
-    <script>
-      // Dropdown menu usuário
-  const userPhoto = document.querySelector('.user-photo');
-  const dropdownMenu = document.querySelector('.dropdown-menu');
-
-  userPhoto.addEventListener('click', () => {
-    dropdownMenu.classList.toggle('show');
-  });
-
-  window.addEventListener('click', (e) => {
-    if (!document.querySelector('.user-dropdown').contains(e.target)) {
-      dropdownMenu.classList.remove('show');
+        localStorage.removeItem("token");
+        alert("Você saiu da sua conta.");
+        window.location.href = "index.html";
+      });
     }
   });
 </script>
-
-
-  </body>
+</body>
 </html>

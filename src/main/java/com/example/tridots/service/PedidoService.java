@@ -60,8 +60,26 @@ public class PedidoService {
 
         Aluno userAluno = optAluno.get();
 
-        Arquivo arquivo = arquivoService.salvar(file);
+        Arquivo arquivo = null;
+
+        if (file != null && !file.isEmpty()) {
+            arquivo = arquivoService.salvar(file);
+            log.info("Arquivo salvo via CRIAR PEDIDO!");
+        } else {
+            log.info("Nenhum arquivo enviado, pedido seguirá sem arquivo.");
+        }
+
+
         log.info("Arquivo salvo via CRIAR PEDIDO!");
+
+        ArquivoDTO arquivoDTO = null;
+        if (arquivo != null) {
+            arquivoDTO = new ArquivoDTO(
+                    arquivo.getIdArquivo(),
+                    arquivo.getNomeArquivo(),
+                    arquivo.getTipoArquivo()
+            );
+        }
 
         Pedido pedido = new Pedido();
         pedido.setAluno(userAluno);
@@ -77,7 +95,7 @@ public class PedidoService {
 
         PedidoResponseDTO pedidoDTO = new PedidoResponseDTO(
                 pedido.getIdPedido(),
-                new ArquivoDTO(arquivo.getIdArquivo(), arquivo.getNomeArquivo(), arquivo.getTipoArquivo()),
+                arquivoDTO,
                 pedido.getDescricao(),
                 pedido.getMedidas().getAltura(),
                 pedido.getMedidas().getLargura(),
@@ -179,10 +197,18 @@ public class PedidoService {
         pedido.setStatus(dto.status());
         pedido.setDiasEstimados(dto.diasEstimados());
         pedidoRepository.save(pedido);
+        ArquivoDTO arquivoDTO = null;
+        if (pedido.getArquivo() != null) {
+            arquivoDTO = new ArquivoDTO(
+                    pedido.getArquivo().getIdArquivo(),
+                    pedido.getArquivo().getNomeArquivo(),
+                    pedido.getArquivo().getTipoArquivo()
+            );
+        }
 
         PedidoResponseDTO pedidoDTO = new PedidoResponseDTO(
                 pedido.getIdPedido(),
-                new ArquivoDTO(arquivo.getIdArquivo(), arquivo.getNomeArquivo(), arquivo.getTipoArquivo()),
+                arquivoDTO,
                 pedido.getDescricao(),
                 pedido.getMedidas().getAltura(),
                 pedido.getMedidas().getLargura(),
@@ -201,14 +227,27 @@ public class PedidoService {
         );
     }
 
+    public Pedido buscarPorId(String idPedido) {
+        return pedidoRepository.findById(idPedido).orElse(null);
+    }
+
     @PreAuthorize("hasRole('ALUNO')")
     public List<PedidoResponseDTO> listarMeusPedidos(String idAluno) {
         return pedidoRepository.findByAluno_IdUsuario(idAluno)
                 .stream()
                 .map(pedido -> {
+                    ArquivoDTO arquivoDTO = null;
+                    if (pedido.getArquivo() != null) {
+                        arquivoDTO = new ArquivoDTO(
+                                pedido.getArquivo().getIdArquivo(),
+                                pedido.getArquivo().getNomeArquivo(),
+                                pedido.getArquivo().getTipoArquivo()
+                        );
+                    }
+
                     PedidoResponseDTO dto = new PedidoResponseDTO(
                             pedido.getIdPedido(),
-                            new ArquivoDTO(pedido.getArquivo().getIdArquivo(), pedido.getArquivo().getNomeArquivo(), pedido.getArquivo().getTipoArquivo()),
+                            arquivoDTO,
                             pedido.getDescricao(),
                             pedido.getMedidas().getAltura(),
                             pedido.getMedidas().getLargura(),
@@ -222,33 +261,39 @@ public class PedidoService {
                 }).toList();
     }
 
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<PedidoAlunoDTO> listarTodos() {
         return pedidoRepository.findAll()
                 .stream()
-                .map(pedido -> new PedidoAlunoDTO(
-                        new AlunoDTO(
-                                pedido.getAluno().getNome(),
-                                pedido.getAluno().getEmailInstitucional(),
-                                pedido.getAluno().getRaAluno(),
-                                pedido.getAluno().getCurso(),
-                                pedido.getAluno().getSemestre()
-                        ),
-                        pedido.getIdPedido(),
-                        new ArquivoDTO(
+                .map(pedido -> {
+                    ArquivoDTO arquivoDTO = null;
+                    if (pedido.getArquivo() != null) {
+                        arquivoDTO = new ArquivoDTO(
                                 pedido.getArquivo().getIdArquivo(),
                                 pedido.getArquivo().getNomeArquivo(),
                                 pedido.getArquivo().getTipoArquivo()
-                        ),
-                        pedido.getDescricao(),
-                        pedido.getMedidas().getAltura(),
-                        pedido.getMedidas().getLargura(),
-                        pedido.getMedidas().getProfundidade(),
-                        pedido.getObservacao(),
-                        pedido.getDiasEstimados(),
-                        pedido.getData(),
-                        pedido.getStatus().name()
-                ))
+                        );
+                    }
+
+                    return new PedidoAlunoDTO(
+                            new AlunoDTO(
+                                    pedido.getAluno().getNome(),
+                                    pedido.getAluno().getEmailInstitucional(),
+                                    pedido.getAluno().getRaAluno(),
+                                    pedido.getAluno().getCurso(),
+                                    pedido.getAluno().getSemestre()
+                            ),
+                            pedido.getIdPedido(),
+                            arquivoDTO,
+                            pedido.getDescricao(),
+                            pedido.getMedidas().getAltura(),
+                            pedido.getMedidas().getLargura(),
+                            pedido.getMedidas().getProfundidade(),
+                            pedido.getObservacao(),
+                            pedido.getDiasEstimados(),
+                            pedido.getData(),
+                            pedido.getStatus().name()
+                    );
+                })
                 .toList();
     }
 }

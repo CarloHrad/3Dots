@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+
+  <script>
+    const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "/login.html";
+  }
+  </script>
+
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fazer Pedido - UNISAL</title>
@@ -13,11 +23,12 @@
   <script>
     // Verifica login
 const token = localStorage.getItem("token");
-alert("Eu, o realizar-pedido.html, peguei o token: " + token);
 
 if (!token) {
   alert("Você precisa estar logado para fazer um pedido.");
   window.location.href = "/login.html";
+  return;
+
 } else {
   // Se quiser, decodifique o token JWT para mostrar nome/email
   // Exemplo básico (se o token estiver em JWT):
@@ -49,10 +60,9 @@ if (!token) {
       <nav>
         <ul>
           <li><a href="index.html">Home</a></li>
-          <p>|</p>
-          <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
-          <p>|</p>
-          <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
+          <li class="menu-restrito"><a href="realizar-pedido.html">Fazer Pedidos</a></li>
+          <li class="menu-restrito"><a href="pedidos.html">Meus Pedidos</a></li>
+          <li class="menu-frase deactivated"><a>⚙️ 3Dots! Imprima seus sonhos</a></li>
         </ul>
       </nav>
     </div>
@@ -75,7 +85,7 @@ if (!token) {
   <section class="pedido-container">
     <h1>Informe os dados do pedido</h1>
 
-    <form class="form-pedido" action="" method="post" enctype="multipart/form-data">
+    <form class="form-pedido" enctype="multipart/form-data">
       <div class="medidas">
         <div class="campo-medida">
           <label for="altura">Altura <a class="xyz-label">X</a></label>
@@ -120,9 +130,10 @@ if (!token) {
 
       <div class="campo-arquivo">
         <label class="arquivo-label" for="arquivo">Arquivo <span class="unidade">(.stl)<a class="xyz-label"> (opcional)</a></span></label>
-        <input type="file" id="arquivo" name="arquivo" class="inputfile" accept=".stl">
+        <input type="file" id="arquivo" name="file" class="inputfile" accept=".stl,.obj,.fbx,.3mf,.dae,.txt">
 
-          <div class="upload-wrapper">
+
+        <div class="upload-wrapper">
             <label for="arquivo" class="btn-upload"
                   id="btnUpload"
                   data-bs-placement="right"
@@ -176,6 +187,8 @@ if (!token) {
       });
     });
 
+
+
   // Validação do arquivo .stl
   const inputArquivo = document.getElementById('arquivo');
   const fileInfo = document.getElementById('file-info');
@@ -183,6 +196,7 @@ if (!token) {
   inputArquivo.addEventListener('change', () => {
     const file = inputArquivo.files[0];
     if (file) {
+
       if (!file.name.toLowerCase().endsWith('.stl')) {
         // Cria popover manualmente
         const popover = bootstrap.Popover.getInstance(btnUpload);
@@ -324,7 +338,6 @@ formData.append("pedido", new Blob(
 ));
 
 const token = localStorage.getItem("token");
-
 const response = await fetch("http://localhost:8080/pedido/criar", {
   method: "POST",
   headers: {
@@ -332,6 +345,9 @@ const response = await fetch("http://localhost:8080/pedido/criar", {
   },
   body: formData
 });
+console.log("Status da resposta:", response.status);
+const textoResposta = await response.text();
+console.log("Corpo da resposta:", textoResposta);
 
 
 
@@ -344,13 +360,16 @@ const response = await fetch("http://localhost:8080/pedido/criar", {
 
       this.reset();
       document.getElementById('file-info').textContent = '';
-    } else {
-      const erro = await response.json();
-      alert(`Erro ao enviar pedido: ${erro.returnDescription || response.statusText}`);
-    }
-  } catch (err) {
-    console.error("Erro ao conectar com backend:", err);
-    alert("Erro ao conectar com o servidor.");
+
+    } else if (response.status === 401) {
+    alert("Sua sessão expirou. Faça login novamente.");
+    localStorage.removeItem("token");
+    window.location.href = "/login.html";
+    return;
+
+  } else {
+    const erro = await response.json().catch(() => null);
+    alert(`Erro ao enviar pedido: ${erro?.returnDescription || response.statusText}`);
   }
 
 });
@@ -365,6 +384,7 @@ const response = await fetch("http://localhost:8080/pedido/criar", {
           .replace(/[,\.](?=.*[,\.])/g, '');
       });
     });
+
   </script>
 </body>
 </html>

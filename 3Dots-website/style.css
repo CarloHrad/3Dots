@@ -10,7 +10,7 @@ body {
   background-color: #f6f8ff;
   color: #111;
   line-height: 1.6;
-  background-image: url("images/retangulo.svg");
+  background-image: url("/images/retangulo.svg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;

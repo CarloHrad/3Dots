@@ -1,6 +1,9 @@
 package com.example.tridots.controller;
 
 import com.example.tridots.OperationCode.OperationCode;
+import com.example.tridots.dto.Alunos.AlunoDTO;
+import com.example.tridots.dto.ArquivoDTO;
+import com.example.tridots.dto.Pedidos.PedidoAlunoDTO;
 import com.example.tridots.dto.Pedidos.PedidoRequestDTO;
 import com.example.tridots.dto.Pedidos.PedidoResponseDTO;
 import com.example.tridots.model.Pedido;
@@ -16,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -43,7 +47,7 @@ public class PedidoController {
     @PostMapping(value = "/criar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseResponse> criar(
             @AuthenticationPrincipal Usuario alunoLogin,
-            @RequestPart("file") MultipartFile file,
+            @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestPart("pedido") @Valid PedidoRequestDTO pedidoRequestDTO) throws IOException {
 
             log.info("Criação de Pedido requisitado.");
@@ -125,6 +129,52 @@ public class PedidoController {
                             OperationCode.INTERNAL_ServerError.getHttpStatus()
                     ));
         }
+    }
+
+    @GetMapping("/{idPedido}")
+    public ResponseEntity<BaseResponse> listarPedidoPorId(@AuthenticationPrincipal Usuario usuario, @PathVariable String idPedido) {
+        Pedido pedido = pedidoService.buscarPorId(idPedido);
+
+        if (pedido == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new BaseResponse("20", OperationCode.PEDIDO_NotFound.getDescription(), null, OperationCode.PEDIDO_NotFound.getHttpStatus())
+            );
+        }
+
+        AlunoDTO alunoDTO = new AlunoDTO(
+                pedido.getAluno().getNome(),
+                pedido.getAluno().getEmailInstitucional(),
+                pedido.getAluno().getRaAluno(),
+                pedido.getAluno().getCurso(),
+                pedido.getAluno().getSemestre()
+        );
+
+        ArquivoDTO arquivoDTO = null;
+        if (pedido.getArquivo() != null) {
+            arquivoDTO = new ArquivoDTO(
+                    pedido.getArquivo().getIdArquivo(),
+                    pedido.getArquivo().getNomeArquivo(),
+                    pedido.getArquivo().getTipoArquivo()
+            );
+        }
+
+        PedidoAlunoDTO pedidoResponseDTO = new PedidoAlunoDTO(
+                alunoDTO,
+                pedido.getIdPedido(),
+                arquivoDTO,
+                pedido.getDescricao(),
+                pedido.getMedidas().getAltura(),
+                pedido.getMedidas().getLargura(),
+                pedido.getMedidas().getProfundidade(),
+                pedido.getObservacao(),
+                pedido.getDiasEstimados(),
+                pedido.getData(),
+                pedido.getStatus().name()
+        );
+
+        return ResponseEntity.ok(
+                new BaseResponse(OperationCode.SUCCESSFUL_Operation.getCode(), "Sucesso na operação", pedidoResponseDTO, OperationCode.SUCCESSFUL_Operation.getHttpStatus())
+        );
     }
 
 

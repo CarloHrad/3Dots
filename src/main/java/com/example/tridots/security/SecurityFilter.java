@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,6 +20,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -30,12 +34,13 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try {
 
             String path = request.getRequestURI();
             if (
                     path.equals("/aluno/login") ||
                             path.equals("/aluno/register") ||
+                            path.equals("/user/register") ||
+                            path.equals("/user/login") ||
                             path.startsWith("/h2-console/") ||
                             path.startsWith("/css/") ||
                             path.startsWith("/js/") ||
@@ -44,48 +49,50 @@ public class SecurityFilter extends OncePerRequestFilter {
                             path.equals("/index.html") ||
                             path.equals("/cadastro.html") ||
                             path.equals("/login.html") ||
+                            path.equals("/admin-pedidos.html") ||
+                            path.equals("/admin-pedido-detalhe.html") ||
                             path.equals("/realizar-pedido.html") ||
+                            path.equals("/meus-pedidos.html") ||
+                            path.equals("/pedidos.html") ||
                             path.equals("/style.css")) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
 
-
             var token = this.recoverToken(request);
+            var login = tokenService.validateToken(token);
 
-            if (token == null || tokenService.validateToken(token).isEmpty()) {
 
-                if (token == null) {
-                    logger.error("TOKEN NULO NULL");
-                }
-                if (tokenService.validateToken(token).isEmpty()) {
-                    logger.error("TOKEN SERVICE VALIDATE TOKEN IS EMPTY VAZIO");
-                }
-
-                response.setStatus(HttpStatus.FORBIDDEN.value());
+            if (token == null || login == null || login.isEmpty()) {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setContentType("application/json");
 
                 BaseResponse baseResponse = new BaseResponse(
                         OperationCode.ACCESS_Denid.getCode(),
-                        OperationCode.ACCESS_Denid.getDescription() + ": Token ausente ou inválido",
+                        "Acesso negado: Token ausente ou inválido",
                         null,
-                        OperationCode.ACCESS_Denid.getHttpStatus()
+                        HttpStatus.UNAUTHORIZED
                 );
 
                 response.getWriter().write(new ObjectMapper().writeValueAsString(baseResponse));
                 return;
             }
 
-            var login = tokenService.validateToken(token);
+        String role = tokenService.getRoleFromToken(token);
+
+        try {
             UserDetails access = authService.loadUserByUsername(login);
-            var authentication = new UsernamePasswordAuthenticationToken(access, null, access.getAuthorities());
+            var authentication = new UsernamePasswordAuthenticationToken(access, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             filterChain.doFilter(request, response);
+
         } catch (UsernameNotFoundException ex) {
             System.out.println("UsernameNot Found Exception Log - Do Filter Internal");
             SecurityContextHolder.clearContext();
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+
         } catch (Exception ex) {
             System.out.println("Exception Log - Do Filter Internal");
             SecurityContextHolder.clearContext();

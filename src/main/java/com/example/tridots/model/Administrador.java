@@ -1,5 +1,7 @@
 package com.example.tridots.model;
 
+import com.example.tridots.enums.Cargo;
+import com.example.tridots.enums.StatusMatricula;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +17,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Administrador extends Usuario {
-    @Column(name = "email", length = 11)
+    @Column(name = "email", length = 50)
     private String email;
     @Column(name = "telefone")
     private String telefone;

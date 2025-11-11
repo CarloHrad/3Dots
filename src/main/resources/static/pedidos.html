@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meus Pedidos - UNISAL</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+<header>
+        <div class="left-header">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
+                </a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li class="menu-restrito"><a href="realizar-pedido.html">Fazer Pedidos</a></li>
+                    <li class="menu-restrito"><a href="pedidos.html">Meus Pedidos</a></li>
+                    <li class="menu-frase deactivated"><a>⚙️ 3Dots! Imprima seus sonhos</a></li>
+                </ul>
+            </nav>
+        </div>
+
+    <div class="user-header" id="auth-menu"></div>
+</header>
+
+<main class="pedidos-main">
+    <div class="layout-pedidos">
+
+        <!-- Filtros laterais -->
+        <aside class="filtros-laterais">
+            <h2>Filtro</h2>
+            <hr />
+            <h3 class="status-pedido-filter-title">Status do pedido</h3>
+
+            <div class="tags">
+                <label class="tag-checkbox"><input type="checkbox" data-status="pendente" checked /> Pendente</label>
+                <label class="tag-checkbox"><input type="checkbox" data-status="aceito" checked /> Aceito</label>
+                <label class="tag-checkbox"><input type="checkbox" data-status="em-producao" checked /> Em produção</label>
+                <label class="tag-checkbox"><input type="checkbox" data-status="finalizado" checked /> Finalizado</label>
+                <label class="tag-checkbox"><input type="checkbox" data-status="cancelado" checked /> Cancelado</label>
+            </div>
+
+            <button class="clean-btn">Limpar tudo</button>
+        </aside>
+
+        <!-- Lista de pedidos -->
+        <section class="lista-pedidos" id="lista-pedidos">
+            <div id="loading" class="loading-text">Carregando pedidos...</div>
+            <div id="sem-pedidos" class="no-results-wrapper" style="display: none;">
+                <img src="images/no-results-illustration.png" alt="Sem resultados" class="no-results-img" />
+                <p class="no-results-text">Nenhum pedido encontrado.</p>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+
+    const API_URL = "http://localhost:8080/pedido/meus-pedidos";
+
+    document.addEventListener("DOMContentLoaded", () => {
+    verificarLogin();
+    renderizarMenuAuth();
+    carregarPedidos();
+
+    const checkboxes = document.querySelectorAll('.tag-checkbox input');
+    checkboxes.forEach(chk => chk.addEventListener('change', filtrarPedidos));
+
+    document.querySelector('.clean-btn').addEventListener('click', limparFiltros);
+  });
+
+  function renderizarMenuAuth() {
+    const authMenu = document.getElementById("auth-menu");
+    const token = localStorage.getItem("token");
+
+    authMenu.innerHTML = ""; // limpa qualquer conteúdo antigo
+
+    if (token) {
+      // Usuário logado
+      authMenu.innerHTML = `
+        <div class="user-header">
+          <div class="user-dropdown">
+            <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
+            <div class="dropdown-menu">
+              <a href="editar-dados.html">Editar dados</a>
+              <a href="#" id="logout-link">Sair</a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 🔹 Pega os elementos criados dinamicamente
+      const userPhoto = authMenu.querySelector('.user-photo');
+      const dropdownMenu = authMenu.querySelector('.dropdown-menu');
+      const logoutLink = authMenu.querySelector('#logout-link');
+
+      // 🔹 Ativa o menu dropdown
+      userPhoto.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+      });
+
+      // 🔹 Fecha o menu ao clicar fora
+      window.addEventListener('click', (e) => {
+        if (!authMenu.contains(e.target)) {
+          dropdownMenu.classList.remove('show');
+        }
+      });
+
+      // 🔹 Botão de logout
+      logoutLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem("token");
+        alert("Você saiu da sua conta.");
+        window.location.href = "index.html";
+      });
+
+    } else {
+      // Usuário não logado
+      authMenu.innerHTML = `
+        <button class="btn-auth" onclick="window.location.href='login.html'">Login</button>
+        <button class="btn-auth" onclick="window.location.href='cadastro.html'">Cadastro</button>
+      `;
+    }
+  }
+
+function logout() {
+  localStorage.removeItem("token");
+  alert("Você saiu da sua conta.");
+  window.location.href = "index.html";
+}
+
+    function verificarLogin() {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        window.location.href = "/login.html";
+        return;
+      }
+
+      // Exemplo simples de saudação
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log("Usuário logado:", payload.sub);
+      } catch (err) {
+        console.warn("Não foi possível decodificar token:", err);
+      }
+    }
+
+    async function carregarPedidos() {
+      const lista = document.getElementById("lista-pedidos");
+      const loading = document.getElementById("loading");
+      const semPedidos = document.getElementById("sem-pedidos");
+
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(API_URL, {
+          headers: {
+            "Authorization": "Bearer " + token,
+          },
+        });
+
+        if (!response.ok) throw new Error("Erro ao carregar pedidos");
+
+        const baseResponse = await response.json();
+        const pedidos = baseResponse.responseObject || [];
+
+        loading.style.display = "none";
+
+        if (pedidos.length === 0) {
+          semPedidos.style.display = "block";
+          return;
+        }
+
+        pedidos.forEach(pedido => {
+          const card = document.createElement("div");
+          card.classList.add("pedido-card");
+          card.classList.add(pedido.status.toLowerCase().replace("_", "-"));
+
+
+          const dataPedido = new Date(pedido.data).toLocaleString("pt-BR");
+
+          card.innerHTML = `
+            <div class="pedido-header">
+              <h3 class="blue-color">Pedido #${pedido.idPedido.slice(0, 6)}</h3>
+              <span>Realizado em <b>${dataPedido}</b></span>
+            </div>
+
+            <div class="pedido-body">
+              <div><strong>Altura</strong><p>${pedido.altura ?? "-"} mm</p></div>
+              <div><strong>Largura</strong><p>${pedido.largura ?? "-"} mm</p></div>
+              <div><strong>Profundidade</strong><p>${pedido.profundidade ?? "-"} mm</p></div>
+              <div><strong>Descrição</strong><p>${pedido.descricao}</p></div>
+              <div><strong>Observação</strong><p>${pedido.observacao || "-"}</p></div>
+              <div><strong>Status atual</strong>
+                  <p class="status ${pedido.status.toLowerCase()}">${pedido.status}</p>
+                </div>
+                <div><strong>Entrega prevista</strong>
+                    <p>${pedido.diasEstimados ? calcularDataPrevista(pedido.data, pedido.diasEstimados) : "Aguardando aprovação"}</p>
+                </div>
+
+            </div>
+
+            <div class="pedido-actions">
+              <div>
+                <strong>Arquivo</strong>
+                ${
+                  pedido.arquivo
+                    ? `
+                      <button class="btn-contact" onclick="baixarArquivo('${pedido.arquivo.idArquivo}')">Baixar arquivo</button>
+                    `
+                    : "<small>Sem arquivo enviado</small>"
+                }
+              </div>
+              ${
+                pedido.status === "PENDENTE"
+                  ? `<button class="btn-delete" onclick="cancelarPedido('${pedido.idPedido}')">Cancelar pedido</button>`
+                  : ""
+              }
+            </div>
+          `;
+
+          lista.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error("Erro:", error);
+        loading.textContent = "Erro ao carregar pedidos.";
+      }
+    }
+
+    async function cancelarPedido(idPedido) {
+      if (!confirm("Deseja realmente cancelar este pedido?")) return;
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:8080/pedido/${idPedido}/cancelar`, {
+        method: "POST",
+        headers: {
+          "Authorization": token ? `Bearer ${token}` : "",
+        },
+      });
+
+      if (response.ok) {
+        alert("Pedido cancelado com sucesso!");
+        location.reload();
+      } else {
+        const erro = await response.json();
+        alert("Erro: " + (erro.message || "Não foi possível cancelar o pedido."));
+      }
+    }
+
+    async function baixarArquivo(idArquivo) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:8080/arquivo/${idArquivo}/download`, {
+          headers: { "Authorization": "Bearer " + token },
+        });
+
+        if (!response.ok) throw new Error("Erro ao baixar arquivo");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "arquivo-pedido";
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        alert("Erro ao baixar arquivo: " + err.message);
+      }
+    }
+
+    function filtrarPedidos() {
+  const checkboxes = document.querySelectorAll('.tag-checkbox input');
+  const ativos = Array.from(checkboxes)
+    .filter(chk => chk.checked)
+    .map(chk => chk.dataset.status);
+
+  const cards = document.querySelectorAll('.pedido-card');
+
+  cards.forEach(card => {
+    // Pega o status da classe (ex: pendente, aceito, cancelado)
+    const statusCard = card.classList.contains('em-producao')
+      ? 'em-producao'
+      : card.classList.contains('pendente')
+      ? 'pendente'
+      : card.classList.contains('aceito')
+      ? 'aceito'
+      : card.classList.contains('finalizado')
+      ? 'finalizado'
+      : 'cancelado';
+
+    // Exibe apenas se o status estiver nos ativos
+    card.style.display = ativos.includes(statusCard) ? "block" : "none";
+  });
+}
+
+function limparFiltros() {
+  const checkboxes = document.querySelectorAll('.tag-checkbox input');
+  checkboxes.forEach(chk => chk.checked = false);
+  filtrarPedidos();
+}
+
+function calcularDataPrevista(data, dias) {
+  let dt = new Date(data);
+  dt.setDate(dt.getDate() + dias);
+  return dt.toLocaleDateString("pt-BR");
+}
+
+function mostrarFiltros() {
+  const checkboxes = document.querySelectorAll('.tag-checkbox input');
+  checkboxes.forEach(chk => chk.checked = true);
+  filtrarPedidos();
+}
+</script>
+</body>
+</html>

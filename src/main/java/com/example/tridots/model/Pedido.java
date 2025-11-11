@@ -27,7 +27,7 @@ public class Pedido {
     private Aluno aluno;
 
     @OneToOne
-    @JoinColumn(name = "idArquivo", nullable = false)
+    @JoinColumn(name = "idArquivo")
     private Arquivo arquivo;
 
     @Column(name = "descricao", nullable = false)

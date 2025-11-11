@@ -19,10 +19,15 @@ public class TokenService {
 
     public String generateToken(Usuario usuario){
         try{
+            System.out.println(">>> Gerando token para usuário: " + usuario.getEmailInstitucional());
+            System.out.println(">>> Cargo do usuário: " + usuario.getCargo());
+            System.out.println(">>> Nome do Cargo do usuário: " + usuario.getCargo().name());
+
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
                     .withIssuer("auth-api")
                     .withSubject(usuario.getEmailInstitucional())
+                    .withClaim("role", usuario.getCargo().name())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
             return token;
@@ -43,6 +48,12 @@ public class TokenService {
             return "";
         }
     }
+
+    public String getRoleFromToken(String token) {
+        return JWT.decode(token).getClaim("role").asString();
+    }
+
+
 
     private Instant genExpirationDate(){
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));

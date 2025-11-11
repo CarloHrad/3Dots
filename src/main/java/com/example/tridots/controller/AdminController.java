@@ -2,8 +2,14 @@ package com.example.tridots.controller;
 
 import com.example.tridots.OperationCode.OperationCode;
 import com.example.tridots.dto.Administrador.StatusUpdateDTO;
+import com.example.tridots.dto.Alunos.AlterarSenhaDTO;
+import com.example.tridots.dto.Alunos.AlunoLoginDTO;
 import com.example.tridots.dto.Alunos.AlunoResponseDTO;
 import com.example.tridots.dto.Pedidos.PedidoAlunoDTO;
+import com.example.tridots.enums.Cargo;
+import com.example.tridots.model.Usuario;
+import com.example.tridots.security.TokenService;
+import com.example.tridots.service.AdminService;
 import com.example.tridots.service.AlunoService;
 import com.example.tridots.service.BaseResponse;
 import com.example.tridots.service.PedidoService;
@@ -15,6 +21,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -33,10 +43,53 @@ public class AdminController {
     AlunoService alunoService;
     @Autowired
     PedidoService pedidoService;
+    @Autowired
+    AdminService adminService;
+    @Autowired
+    AuthenticationManager authenticationManager;
+    @Autowired
+    TokenService tokenService;
 
     private static final Logger log = LoggerFactory.getLogger(AdminController.class);
 
     /*Endpoint para administrador atualizar os próprios dados*/
+
+    @PostMapping("/login")
+    public ResponseEntity<BaseResponse> adminLogin(@RequestBody @Valid AlunoLoginDTO loginDTO) {
+        try {
+            var auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDTO.emailInstitucional(), loginDTO.password())
+            );
+
+            Usuario usuario = (Usuario) auth.getPrincipal();
+
+            if (usuario.getCargo() != Cargo.ADMINISTRADOR) {
+                throw new BadCredentialsException("Acesso permitido apenas para administradores");
+            }
+
+            String token = tokenService.generateToken(usuario);
+
+            BaseResponse response = new BaseResponse(
+                    OperationCode.SUCCESSFUL_Operation.getCode(),
+                    OperationCode.SUCCESSFUL_Operation.getDescription(),
+                    token,
+                    OperationCode.SUCCESSFUL_Operation.getHttpStatus()
+            );
+
+            return ResponseEntity.status(response.getHttpStatus()).body(response);
+
+        } catch (BadCredentialsException e) {
+            BaseResponse response = new BaseResponse(
+                    OperationCode.LOGIN_Invalid.getCode(),
+                    OperationCode.LOGIN_Invalid.getDescription(),
+                    null,
+                    OperationCode.LOGIN_Invalid.getHttpStatus()
+            );
+            return ResponseEntity.status(response.getHttpStatus()).body(response);
+        }
+    }
+
+
 
     @GetMapping("/listar-pedidos")
     public ResponseEntity<BaseResponse> listarTodos() {
@@ -140,6 +193,54 @@ public class AdminController {
                     null,
                     OperationCode.INTERNAL_ServerError.getHttpStatus()
             ));
+        }
+    }
+
+    @PutMapping("/{idUsuario}/alterar-senha")
+    public ResponseEntity<BaseResponse> alterarSenha(@PathVariable("idUsuario") String idUsuario,
+                                                     @RequestBody AlterarSenhaDTO alterarSenhaDTO,
+                                                     @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        if (alterarSenhaDTO.novaSenha().equals(alterarSenhaDTO.senhaAtual())) {
+            BaseResponse response = new BaseResponse(
+                    OperationCode.PASSWORD_ReuseNotAllowed.getCode(),
+                    OperationCode.PASSWORD_ReuseNotAllowed.getDescription(),
+                    null,
+                    OperationCode.PASSWORD_ReuseNotAllowed.getHttpStatus()
+            );
+            return ResponseEntity.status(response.getHttpStatus()).body(response);
+        }
+
+        try {
+            log.warn("Alteração de senha solicitada para usuário {}", idUsuario);
+            adminService.alterarSenha(idUsuario, alterarSenhaDTO, usuarioLogado);
+
+            BaseResponse response = new BaseResponse(
+                    OperationCode.SUCCESSFUL_Operation.getCode(),
+                    OperationCode.SUCCESSFUL_Operation.getDescription(),
+                    null,
+                    OperationCode.SUCCESSFUL_Operation.getHttpStatus()
+            );
+            return ResponseEntity.status(response.getHttpStatus()).body(response);
+
+        } catch (java.nio.file.AccessDeniedException accessDeniedException) {
+            BaseResponse response = new BaseResponse(
+                    OperationCode.ACCESS_Denid.getCode(),
+                    OperationCode.ACCESS_Denid.getDescription(),
+                    null,
+                    OperationCode.ACCESS_Denid.getHttpStatus()
+            );
+            return ResponseEntity.status(response.getHttpStatus()).body(response);
+
+        } catch (Exception exception) {
+            log.error("Erro inesperado ao alterar senha de usuário {}", idUsuario, exception);
+            BaseResponse response = new BaseResponse(
+                    OperationCode.INTERNAL_ServerError.getCode(),
+                    OperationCode.INTERNAL_ServerError.getDescription(),
+                    null,
+                    OperationCode.INTERNAL_ServerError.getHttpStatus()
+            );
+            return ResponseEntity.status(response.getHttpStatus()).body(response);
         }
     }
 

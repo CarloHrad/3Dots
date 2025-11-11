@@ -7,10 +7,13 @@ import com.example.tridots.repository.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AuthService implements UserDetailsService {
@@ -29,6 +32,8 @@ public class AuthService implements UserDetailsService {
             log.error("Usuário não pôde ser encontrado");
             throw new UsernameNotFoundException(OperationCode.LOGIN_NotFound.getDescription());
         }
+
+        String role = "ROLE_" + user.getCargo().name();
 
         return user;
     }

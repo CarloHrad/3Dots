@@ -2,6 +2,7 @@ package com.example.tridots.controller;
 
 import com.example.tridots.OperationCode.OperationCode;
 import com.example.tridots.dto.Alunos.*;
+import com.example.tridots.enums.Cargo;
 import com.example.tridots.model.Usuario;
 import com.example.tridots.repository.AlunoRepository;
 import com.example.tridots.repository.UsuarioRepository;
@@ -47,81 +48,6 @@ public class AlunoController {
     AlunoRepository alunoRepository;
     @Autowired
     TokenService tokenService;
-
-    @PostMapping("/register")
-    public ResponseEntity<BaseResponse> register(@RequestBody @Valid AlunoRegisterDTO alunoRegisterDTO) {
-
-        if (usuarioRepository.findByEmailInstitucional(alunoRegisterDTO.emailInstitucional()) != null) {
-            BaseResponse response = new BaseResponse(
-                    OperationCode.EMAIL_AlreadyExists.getCode(),
-                    OperationCode.EMAIL_AlreadyExists.getDescription(),
-                    null,
-                    OperationCode.EMAIL_AlreadyExists.getHttpStatus()
-            );
-            return ResponseEntity.status(response.getHttpStatus()).body(response);
-        }
-
-        if (alunoRepository.findByRaAluno(alunoRegisterDTO.raAluno()) != null) {
-            BaseResponse response = new BaseResponse(
-                    OperationCode.RA_AlreadyExists.getCode(),
-                    OperationCode.RA_AlreadyExists.getDescription(),
-                    null,
-                    OperationCode.RA_AlreadyExists.getHttpStatus()
-            );
-            return ResponseEntity.status(response.getHttpStatus()).body(response);
-        }
-
-        BaseResponse alunoResponseDTO = alunoService.createAluno(alunoRegisterDTO);
-
-        BaseResponse response = new BaseResponse(
-                OperationCode.SUCCESSFUL_Operation.getCode(),
-                OperationCode.SUCCESSFUL_Operation.getDescription(),
-                alunoResponseDTO,
-                OperationCode.SUCCESSFUL_Operation.getHttpStatus()
-        );
-
-        log.warn("Cadastro realizado com sucesso para {}", alunoRegisterDTO.emailInstitucional());
-        return ResponseEntity.status(response.getHttpStatus()).body(response);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<BaseResponse> login(@RequestBody @Valid AlunoLoginDTO alunoLoginDTO) {
-        try {
-            var usernamePassword = new UsernamePasswordAuthenticationToken(
-                    alunoLoginDTO.emailInstitucional(), alunoLoginDTO.password()
-            );
-            var auth = authenticationManager.authenticate(usernamePassword);
-            var token = tokenService.generateToken((Usuario) auth.getPrincipal());
-
-            log.warn("Login realizado com sucesso para {}", alunoLoginDTO.emailInstitucional());
-
-            BaseResponse response = new BaseResponse(
-                    OperationCode.SUCCESSFUL_Operation.getCode(),
-                    OperationCode.SUCCESSFUL_Operation.getDescription(),
-                    token,
-                    OperationCode.SUCCESSFUL_Operation.getHttpStatus()
-            );
-            return ResponseEntity.status(response.getHttpStatus()).body(response);
-
-        } catch (BadCredentialsException e) {
-            BaseResponse response = new BaseResponse(
-                    OperationCode.LOGIN_Invalid.getCode(),
-                    OperationCode.LOGIN_Invalid.getDescription(),
-                    null,
-                    OperationCode.LOGIN_Invalid.getHttpStatus()
-            );
-            return ResponseEntity.status(response.getHttpStatus()).body(response);
-
-        } catch (Exception e) {
-            BaseResponse response = new BaseResponse(
-                    OperationCode.INTERNAL_ServerError.getCode(),
-                    OperationCode.INTERNAL_ServerError.getDescription(),
-                    null,
-                    OperationCode.INTERNAL_ServerError.getHttpStatus()
-            );
-            return ResponseEntity.status(response.getHttpStatus()).body(response);
-        }
-    }
 
     @PutMapping("/update")
     public ResponseEntity<BaseResponse> atualizarInformacoes(
