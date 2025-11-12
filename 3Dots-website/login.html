@@ -4,93 +4,98 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - UNISAL</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-    <header>
-      <div class="left-header">      
-        <div class="logo">
-          <a href="index.html">
-            <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
-          </a>
-        </div>
-        <nav>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <p>|</p>
-            <li><a href="realizar-pedido.html">Fazer Pedidos</a></li>
-            <p>|</p>
-            <li><a href="pedidos-feitos.html">Meus Pedidos</a></li>
-          </ul>
-        </nav>
-      </div>
+<div id="popup-container"></div>
 
-      <a class="text-decoration-off" href="login.html">
-        <button class="btn-header-login deactivated">Faça login</button>
+<header>
+  <div class="left-header">
+    <div class="logo">
+      <a href="index.html">
+        <img src="images/unisal-logo.png" alt="UNISAL Logo"/>
       </a>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li class="menu-restrito"><a href="realizar-pedido.html">Fazer Pedidos</a></li>
+        <li class="menu-restrito"><a href="pedidos.html">Meus Pedidos</a></li>
+        <li class="menu-frase deactivated"><a>⚙️ 3Dots! Imprima seus sonhos</a></li>
+      </ul>
+    </nav>
+  </div>
 
-      <div class="user-header">
-        <div class="user-dropdown">
-          <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
-          <div class="dropdown-menu">
-            <a href="editar-dados.html">Editar dados</a>
-            <a href="#">Sair</a>
-          </div>
-        </div>
+  <a class="text-decoration-off" href="cadastro.html">
+    <button class="btn-header-login">Cadastre-se</button>
+  </a>
+</header>
+
+<main class="login-main">
+  <h2>Faça login para realizar pedidos</h2>
+
+  <section class="form-container">
+
+    <form id="form-login">
+      <label for="email">E-mail institucional</label>
+      <div class="input-group">
+        <input type="email" id="email" name="email" placeholder="joao.silva@unisal.br" required />
       </div>
-      
-    </header>
 
-  <main class="login-main">
-    <h2>Faça login para realizar pedidos</h2>
+      <label for="senha">Senha</label>
+      <div class="input-group senha-container">
+        <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required />
+        <button type="button" id="toggleSenha" class="toggle-senha">
+          <img src="images/visibility-off-icon.svg" alt="Mostrar/Ocultar Senha" />
+        </button>
+      </div>
 
-    <section class="form-container">
+      <div class="options">
+        <label>
+          <input type="checkbox" class="remember-checkbox"/> Lembrar-se deste dispositivo
+        </label>
+        <a href="#" class="forgot">Esqueceu sua senha?</a>
+      </div>
 
-      <form id="form-login">
-        <label for="email">E-mail institucional</label>
-        <div class="input-group">
-          <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="joao.silva@unisal.br"
-            required
-          />
-        </div>
+      <button type="submit" class="btn-login">Fazer login</button>
 
-        <label for="senha">Senha</label>
-        <div class="input-group senha-container">
-          <input
-            type="password"
-            id="senha"
-            name="senha"
-            placeholder="Digite sua senha"
-            required
-          />
-          <button type="button" id="toggleSenha" class="toggle-senha">
-                <img src="images/visibility-off-icon.svg" alt="Mostrar/Ocultar Senha" />
-            </button>
-        </div>
+      <div id="errorMessage" class="error-message"></div>
 
-        <div class="options">
-          <label>
-            <input type="checkbox" class="remember-checkbox"/> Lembrar-se deste dispositivo
-          </label>
-          <a href="#" class="forgot">Esqueceu sua senha?</a>
-        </div>
+      <p class="register">
+        Não possui uma conta?
+        <a href="cadastro.html" class="cadastro">Cadastre-se</a>
+      </p>
+    </form>
 
-        <button type="submit" class="btn-login">Fazer login</button>
-
-        <p class="register">
-          Não possui uma conta?
-          <a href="cadastro.html" class="cadastro">Cadastre-se</a>
-        </p>
-      </form>
-    </section>
-  </main>
+  </section>
+</main>
 
 <script>
-    // Mostrar/ocultar senha
+  document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token");
+
+    // Bloquear acesso à página de login se já estiver logado
+    if (token) {
+      alert("Você já está logado!");
+      window.location.href = "index.html";
+    }
+
+    // Mostrar/ocultar menus restritos e botão de login
+    const menusRestritos = document.querySelectorAll(".menu-restrito");
+    const btnLogin = document.querySelector(".btn-header-login");
+    const menuFrase = document.querySelector(".menu-frase");
+
+    if (!token) {
+      menusRestritos.forEach(el => el.style.display = "none");
+      btnLogin.style.display = "block";
+      menuFrase.style.display = "inline-block";
+    } else {
+      menusRestritos.forEach(el => el.style.display = "inline-block");
+      btnLogin.style.display = "none";
+      menuFrase.style.display = "none";
+    }
+
+    // Toggle senha
     const toggleSenha = document.getElementById("toggleSenha");
     const senhaInput = document.getElementById("senha");
 
@@ -98,26 +103,69 @@
       const tipo = senhaInput.type === "password" ? "text" : "password";
       senhaInput.type = tipo;
       const img = toggleSenha.querySelector("img");
-      img.src = tipo === "password"
-        ? "images/visibility-off-icon.svg"
-        : "images/visibility-icon.svg";
+      img.src = tipo === "password" ? "images/visibility-off-icon.svg" : "images/visibility-icon.svg";
     });
 
-    // Dropdown menu usuário
-    const userPhoto = document.querySelector('.user-photo');
-  const dropdownMenu = document.querySelector('.dropdown-menu');
+    // Form login
+    const formLogin = document.getElementById("form-login");
+    const errorMessage = document.getElementById("errorMessage");
 
-  userPhoto.addEventListener('click', () => {
-    dropdownMenu.classList.toggle('show');
+    formLogin.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMessage.textContent = "";
+
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+
+      try {
+        const response = await fetch("http://localhost:8080/user/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ emailInstitucional: email, password: senha })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.responseObject) {
+        const { token, role } = result.responseObject;
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", role);
+
+
+          if (role === "ALUNO") {
+          window.location.href = "pedidos.html";
+        } else if (role === "ADMINISTRADOR") {
+          window.location.href = "admin-pedidos.html"; // ou outra página de admin
+        } else {
+          errorMessage.textContent = "Cargo desconhecido. Contate o suporte.";
+        }
+
+        } else {
+          errorMessage.textContent = result.returnDescription || "Verifique suas credenciais.";
+        }
+      } catch (error) {
+        console.error(error);
+        errorMessage.textContent = "Erro ao conectar ao servidor.";
+      }
+    });
   });
 
-  window.addEventListener('click', (e) => {
-    if (!document.querySelector('.user-dropdown').contains(e.target)) {
-      dropdownMenu.classList.remove('show');
-    }
-  });
+function mostrarPopupSucesso(titulo = "Sucesso!", mensagem = "Operação realizada com sucesso.", duracao = 3000) {
+  const popup = document.getElementById('popup-sucesso');
+  const popupTitulo = document.getElementById('popup-titulo');
+  const popupMensagem = document.getElementById('popup-mensagem');
 
-  </script>
+  popupTitulo.textContent = titulo;
+  popupMensagem.textContent = mensagem;
+
+  popup.classList.add('show');
+
+  setTimeout(() => {
+    popup.classList.remove('show');
+  }, duracao);
+}
+
+</script>
 
 </body>
 </html>

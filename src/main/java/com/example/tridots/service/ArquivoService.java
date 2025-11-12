@@ -77,4 +77,9 @@ public class ArquivoService {
         return Files.readAllBytes(filePath);
     }
 
+    public Arquivo findById(String id) {
+        return arquivoRepository.findById(id).orElseThrow(() -> new RuntimeException("Arquivo inexistente"));
+    }
+
+
 }

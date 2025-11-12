@@ -131,6 +131,7 @@
         localStorage.setItem("token", token);
         localStorage.setItem("role", role);
 
+
           if (role === "ALUNO") {
           window.location.href = "pedidos.html";
         } else if (role === "ADMINISTRADOR") {
@@ -148,6 +149,22 @@
       }
     });
   });
+
+function mostrarPopupSucesso(titulo = "Sucesso!", mensagem = "Operação realizada com sucesso.", duracao = 3000) {
+  const popup = document.getElementById('popup-sucesso');
+  const popupTitulo = document.getElementById('popup-titulo');
+  const popupMensagem = document.getElementById('popup-mensagem');
+
+  popupTitulo.textContent = titulo;
+  popupMensagem.textContent = mensagem;
+
+  popup.classList.add('show');
+
+  setTimeout(() => {
+    popup.classList.remove('show');
+  }, duracao);
+}
+
 </script>
 
 </body>

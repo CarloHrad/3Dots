@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel Administrativo - Pedidos</title>
     <link rel="stylesheet" href="css/style.css" />
+
 </head>
 <body>
 
@@ -31,15 +32,29 @@
 
 
 
-<header>
-    <h1>Painel Administrativo</h1>
+<header class="topbar">
+    <div class="left-header">
+        <h1>Painel Administrativo</h1>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Buscar aluno ou ID..." />
+    </div>
+
+    <div class="user-header" id="auth-menu"></div>
 </header>
 
-<main class="pedidos-main">
-    <section class="lista-pedidos" id="lista-pedidos">
-        <p id="loading">Carregando pedidos...</p>
+
+<main class="pedidos-main admin-layout">
+
+    <section class="dashboard-cards">
+        <div class="dash-card"><h3>Pendentes</h3><p id="count-pendentes">0</p></div>
+        <div class="dash-card"><h3>Aceitos</h3><p id="count-aceitos">0</p></div>
+        <div class="dash-card"><h3>Em produção</h3><p id="count-producao">0</p></div>
+        <div class="dash-card"><h3>Finalizados</h3><p id="count-finalizados">0</p></div>
     </section>
 
+    <div class="layout-pedidos">
     <!-- Filtros laterais -->
     <aside class="filtros-laterais">
         <h2>Filtro</h2>
@@ -56,12 +71,92 @@
 
         <button class="clean-btn">Limpar tudo</button>
     </aside>
+
+        <section class="lista-pedidos" id="lista-pedidos">
+
+            <!-- Estado: Carregando -->
+            <div id="loading" class="pedido-card">
+                <div class="pedido-header">
+                    <h3>Carregando pedidos...</h3>
+                </div>
+                <div class="pedido-body">
+                    <p>Aguarde enquanto buscamos os dados.</p>
+                </div>
+            </div>
+
+            <!-- Estado: Nenhum pedido -->
+            <div id="sem-pedidos" class="pedido-card" style="display: none;">
+                <div class="pedido-header">
+                    <h3>Nenhum pedido encontrado</h3>
+                </div>
+                <div class="pedido-body" style="text-align: center;">
+                    <img src="images/no-results-illustration.png"
+                         alt="Sem resultados"
+                         style="max-width: 180px; opacity: 0.8; margin: 0 auto 20px; display: block;">
+                    <p>Não há pedidos registrados no momento.</p>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
 </main>
 
 <script>
+
+    function renderizarMenuAuthAdmin() {
+  const authMenu = document.getElementById("auth-menu");
+  const token = localStorage.getItem("token");
+
+  authMenu.innerHTML = "";
+
+  if (token) {
+    authMenu.innerHTML = `
+      <div class="user-header">
+        <div class="user-dropdown">
+          <img src="images/user-photo.png" alt="Foto do usuário" class="user-photo" />
+          <div class="dropdown-menu">
+            <a href="admin-pedidos.html">Pedidos</a>
+            <a href="admin-alunos.html">Alunos cadastrados</a>
+            <a href="admin-configuracao.html">Configurações</a>
+            <a href="#" id="logout-link">Sair</a>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const userPhoto = authMenu.querySelector('.user-photo');
+    const dropdownMenu = authMenu.querySelector('.dropdown-menu');
+    const logoutLink = authMenu.querySelector('#logout-link');
+
+    userPhoto.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('show');
+    });
+
+    window.addEventListener('click', (e) => {
+      if (!authMenu.contains(e.target)) dropdownMenu.classList.remove('show');
+    });
+
+    logoutLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem("token");
+      alert("Você saiu da sua conta.");
+      window.location.href = "login.html";
+    });
+
+  } else {
+    authMenu.innerHTML = `
+      <button class="btn-auth" onclick="window.location.href='login.html'">Login</button>
+    `;
+  }
+}
+
+
     const API_URL = "http://localhost:8080/admin/listar-pedidos";
 
     document.addEventListener("DOMContentLoaded", () => {
+    renderizarMenuAuthAdmin();
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -69,7 +164,9 @@
         return;
     }
 
+    document.querySelectorAll('.tag-checkbox input').forEach(chk => chk.addEventListener('change', filtrarPedidos));
     document.querySelector('.clean-btn').addEventListener('click', limparFiltros);
+
 
     try {
         const payload = JSON.parse(atob(token.split(".")[1]));
@@ -96,6 +193,8 @@ async function carregarPedidos(token) {
   const loading = document.getElementById("loading");
 
 
+
+
   try {
     const response = await fetch("http://localhost:8080/admin/listar-pedidos", {
       method: "GET",
@@ -112,12 +211,14 @@ async function carregarPedidos(token) {
 
     const baseResponse = await response.json();
     const pedidos = baseResponse.responseObject;
+    atualizarDashboard(pedidos);
 
     loading.remove();
 
+
     pedidos.forEach(p => {
       const card = document.createElement("div");
-      card.classList.add("pedido-card", (p.status || "desconhecido").toLowerCase());
+      card.classList.add("pedido-card", p.status.toLowerCase().replace("_", "-"));
 
       const data = new Date(p.data).toLocaleString("pt-BR");
 
@@ -131,24 +232,70 @@ async function carregarPedidos(token) {
     }
 
 
-      card.innerHTML = `
-  <h3>Pedido #${p.idPedido.slice(0, 6)}</h3>
-  <p><strong>Aluno:</strong> ${p.alunoDTO.nome} (${p.alunoDTO.raAluno})</p>
+card.innerHTML = `
+  <div class="pedido-header">
+    <h3 class="blue-color pedido-titulo" onclick="abrirDetalhes('${p.idPedido}')">
+      Pedido #${p.idPedido.slice(0, 6)}
+    </h3>
+    <span>Realizado em <b>${new Date(p.data).toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })}</b></span>
 
-  <p><strong>Descrição:</strong> ${p.descricao}</p>
-  <p><strong>Medidas:</strong>
-      ${p.altura}cm (A) × ${p.largura}cm (L) × ${p.profundidade}cm (P)
-  </p>
 
-  <p><strong>Status:</strong> ${p.status}</p>
-  <p><strong>Data do Pedido:</strong> ${dataPedido.toLocaleDateString("pt-BR")}</p>
+  </div>
 
-  <p><strong>Previsão de Entrega:</strong>
-      ${dataPrevista ? dataPrevista.toLocaleDateString("pt-BR") : "A definir"}
-  </p>
+  <div class="pedido-body">
+    <div><strong>Altura</strong><p>${p.altura ?? "-"} mm</p></div>
+    <div><strong>Largura</strong><p>${p.largura ?? "-"} mm</p></div>
+    <div><strong>Profundidade</strong><p>${p.profundidade ?? "-"} mm</p></div>
 
+    <div>
+      <strong>Descrição</strong>
+      <p class="descricao-curta" id="desc-${p.idPedido}">${p.descricao}</p>
+      ${
+        (p.descricao || "").length > 95
+          ? `<button class="btn-vermais" onclick="toggleDescricao('${p.idPedido}')">Ver mais</button>`
+          : ""
+      }
+    </div>
+
+    <div>
+      <strong>Observação</strong>
+      <p class="observacao-curta" id="obs-${p.idPedido}">${p.observacao || "-"}</p>
+      ${
+        (p.observacao || "").length > 95
+          ? `<button class="btn-vermais" onclick="toggleObservacao('${p.idPedido}')">Ver mais</button>`
+          : ""
+      }
+    </div>
+
+    <div><strong>Status atual</strong><p class="status ${p.status.toLowerCase()}">${p.status}</p></div>
+    ${
+      p.status === "CANCELADO"
+        ? ""
+        : `<div><strong>Entrega prevista</strong><p>${
+            dataPrevista
+              ? dataPrevista.toLocaleDateString("pt-BR")
+              : "A definir"
+          }</p></div>`
+    }
+
+    <div class="pedido-footer">
+  ${
+    p.arquivo
+      ? `<button class="btn-contact" onclick="baixarArquivo('${p.arquivo.idArquivo}', '${p.idPedido}', '${p.arquivo.nomeArquivo}')">Baixar arquivo</button>`
+      : "<small>Sem arquivo</small>"
+  }
   <button class="btn-contact" onclick="abrirDetalhes('${p.idPedido}')">Ver detalhes</button>
+</div>
+
 `;
+
+
 
       lista.appendChild(card);
     });
@@ -164,16 +311,16 @@ async function carregarPedidos(token) {
       window.location.href = `admin-pedido-detalhe.html?id=${idPedido}`;
     }
 
-    function filtrarPedidos() {
+function filtrarPedidos() {
   const checkboxes = document.querySelectorAll('.tag-checkbox input');
   const ativos = Array.from(checkboxes)
     .filter(chk => chk.checked)
     .map(chk => chk.dataset.status);
 
   const cards = document.querySelectorAll('.pedido-card');
+  let algumVisivel = false; // Declarado aqui
 
   cards.forEach(card => {
-    // Pega o status da classe (ex: pendente, aceito, cancelado)
     const statusCard = card.classList.contains('em-producao')
       ? 'em-producao'
       : card.classList.contains('pendente')
@@ -182,12 +329,22 @@ async function carregarPedidos(token) {
       ? 'aceito'
       : card.classList.contains('finalizado')
       ? 'finalizado'
-      : 'cancelado';
+      : card.classList.contains('cancelado')
+      ? 'cancelado'
+      : null;
 
-    // Exibe apenas se o status estiver nos ativos
-    card.style.display = ativos.includes(statusCard) ? "block" : "none";
+    if (statusCard && ativos.includes(statusCard)) {
+      card.style.display = "block";
+      algumVisivel = true;
+    } else {
+      card.style.display = "none";
+    }
   });
+
+  const semPedidos = document.getElementById("sem-pedidos");
+  semPedidos.style.display = algumVisivel ? "none" : "block";
 }
+
 
 function limparFiltros() {
   const checkboxes = document.querySelectorAll('.tag-checkbox input');
@@ -200,6 +357,60 @@ function mostrarFiltros() {
   checkboxes.forEach(chk => chk.checked = true);
   filtrarPedidos();
 }
+
+function atualizarDashboard(pedidos) {
+  document.getElementById("count-pendentes").textContent = pedidos.filter(p => p.status === "PENDENTE").length;
+  document.getElementById("count-aceitos").textContent = pedidos.filter(p => p.status === "ACEITO").length;
+  document.getElementById("count-producao").textContent = pedidos.filter(p => p.status === "EM_PRODUCAO").length;
+  document.getElementById("count-finalizados").textContent = pedidos.filter(p => p.status === "FINALIZADO").length;
+}
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  const termo = e.target.value.toLowerCase();
+  const cards = document.querySelectorAll(".pedido-card");
+  const semPedidos = document.getElementById("sem-pedidos");
+  let algumVisivel = false;
+
+  cards.forEach(card => {
+    // ignora os cards especiais
+    if (card.id === "sem-pedidos" || card.id === "loading") return;
+
+    const texto = card.textContent.toLowerCase();
+    const visivel = texto.includes(termo);
+    card.style.display = visivel ? "block" : "none";
+    if (visivel) algumVisivel = true;
+  });
+
+  // mostra ou esconde a mensagem "sem pedidos"
+  semPedidos.style.display = algumVisivel ? "none" : "block";
+});
+
+function toggleDescricao(id) {
+  const el = document.getElementById(`desc-${id}`);
+  const btn = el.nextElementSibling;
+
+  if (el.classList.contains("expanded")) {
+    el.classList.remove("expanded");
+    btn.textContent = "Ver mais";
+  } else {
+    el.classList.add("expanded");
+    btn.textContent = "Ver menos";
+  }
+}
+
+function toggleObservacao(id) {
+  const el = document.getElementById(`obs-${id}`);
+  const btn = el.nextElementSibling;
+
+  if (el.classList.contains("expanded")) {
+    el.classList.remove("expanded");
+    btn.textContent = "Ver mais";
+  } else {
+    el.classList.add("expanded");
+    btn.textContent = "Ver menos";
+  }
+}
+
+
 </script>
 
 </body>

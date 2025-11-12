@@ -99,6 +99,15 @@
   <div class="hero-image">
     <img src="images/submit-image.svg" alt="Ilustração sobre cadastro">
   </div>
+
+  <div id="popup-sucesso" class="popup-sucesso">
+    <div class="popup-conteudo">
+      <img src="images/celebrating-icon.png" alt="Sucesso" class="popup-icon" />
+      <h2 id="popup-titulo">Sucesso!</h2>
+      <p id="popup-mensagem">Operação realizada com sucesso.</p>
+    </div>
+  </div>
+
 </section>
 
 <script>
@@ -161,15 +170,40 @@
           ? await response.json()
           : { message: "Resposta inesperada do servidor." };
 
-        alert(data.description || data.message || "Cadastro processado.");
+        if (!response.ok) {
+          // mensagens personalizadas, conforme o backend retornar
+          if (response.status === 409) {
+            alert("E-mail ou RA já cadastrado. Tente fazer login ou use outra conta.");
+          }
+          return;
+        }
 
-        if (response.ok) window.location.href = "login.html";
+        if (response.ok) {
+          mostrarPopupSucesso("Cadastro realizado!", "Seu cadastro foi efetuado com sucesso.");
+          setTimeout(() => window.location.href = "login.html", 2000);
+        }
       } catch (error) {
         console.error(error);
         alert("Erro ao conectar com o servidor.");
       }
     });
   });
+
+  function mostrarPopupSucesso(titulo = "Sucesso!", mensagem = "Operação realizada com sucesso.", duracao = 3000) {
+  const popup = document.getElementById('popup-sucesso');
+  const popupTitulo = document.getElementById('popup-titulo');
+  const popupMensagem = document.getElementById('popup-mensagem');
+
+  popupTitulo.textContent = titulo;
+  popupMensagem.textContent = mensagem;
+
+  popup.classList.add('show');
+
+  setTimeout(() => {
+    popup.classList.remove('show');
+  }, duracao);
+}
+
 </script>
 
 </body>

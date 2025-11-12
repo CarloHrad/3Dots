@@ -8,31 +8,35 @@
 <body>
 
 <main class="detalhe-main">
-    <h1>Pedido #<span id="numero-pedido"></span></h1>
+    <div class="pedido-card">
+        <h1 class="pedido-titulo">Pedido #<span id="numero-pedido"></span></h1>
 
-    <section class="pedido-info" id="pedido-detalhe"></section>
+        <section class="pedido-info" id="pedido-detalhe"></section>
 
-    <hr />
+        <hr />
 
-    <h2>Atualizar Status</h2>
-    <form id="form-status">
-        <label for="status">Novo Status:</label>
-        <select id="status">
-            <option value="PENDENTE">Pendente</option>
-            <option value="ACEITO">Aceito</option>
-            <option value="EM_PRODUCAO">Em Produção</option>
-            <option value="FINALIZADO">Finalizado</option>
-            <option value="CANCELADO">Cancelado</option>
-        </select>
+        <h2 class="pedido-subtitulo">Atualizar Status</h2>
 
-        <div id="campo-dias">
-            <label for="diasEstimados">Dias Estimados:</label>
-            <input type="number" id="diasEstimados" min="0"/>
-        </div>
+        <form id="form-status" class="status-form">
+            <label for="status">Novo Status:</label>
+            <select id="status" class="select-status">
+                <option value="PENDENTE">Pendente</option>
+                <option value="ACEITO">Aceito</option>
+                <option value="EM_PRODUCAO">Em Produção</option>
+                <option value="FINALIZADO">Finalizado</option>
+                <option value="CANCELADO">Cancelado</option>
+            </select>
 
-        <button type="submit">Salvar</button>
-    </form>
+            <div id="campo-dias" class="campo-dias">
+                <label for="diasEstimados">Dias Estimados:</label>
+                <input type="number" id="diasEstimados" min="0" />
+            </div>
+
+            <button type="submit" class="btn-salvar">Salvar Alterações</button>
+        </form>
+    </div>
 </main>
+
 
 
 <script>
@@ -65,13 +69,29 @@
   }
 
   document.getElementById("pedido-detalhe").innerHTML = `
-      <p><strong>Aluno:</strong> ${p.alunoDTO.nome} (${p.alunoDTO.raAluno})</p>
-      <p><strong>Descrição:</strong> ${p.descricao}</p>
-      <p><strong>Medidas:</strong> ${p.altura} × ${p.largura} × ${p.profundidade} cm</p>
-      <p><strong>Status atual:</strong> <span class="status ${p.status.toLowerCase()}">${p.status}</span></p>
-      <p><strong>Data do Pedido:</strong> ${dataPedido}</p>
-      <p><strong>Entrega:</strong> ${previsao}</p>
-  `;
+  <div class="detalhe-info">
+    <p><strong>Aluno:</strong><br> ${p.alunoDTO.nome} (${p.alunoDTO.raAluno})</p>
+
+    <p><strong>Descrição:</strong><br> ${p.descricao}</p>
+
+    <p><strong>Medidas:</strong><br>
+      ${p.altura} × ${p.largura} × ${p.profundidade} cm
+    </p>
+
+    <p><strong>Observação:</strong><br>
+      ${p.observacao && p.observacao.trim() !== "" ? p.observacao : "-"}
+    </p>
+
+    <p><strong>Status atual:</strong><br>
+      <span class="status ${p.status.toLowerCase()}">${p.status}</span>
+    </p>
+
+    <p><strong>Data do Pedido:</strong><br> ${dataPedido}</p>
+
+    <p><strong>Entrega:</strong><br> ${previsao}</p>
+  </div>
+`;
+
 
   document.getElementById("status").value = p.status;
   document.getElementById("diasEstimados").value = p.diasEstimados ?? "";
@@ -81,13 +101,18 @@
 
 function controlarCampos(status) {
   const campoDias = document.getElementById("campo-dias");
+  const inputDias = document.getElementById("diasEstimados");
 
   if (status === "ACEITO" || status === "EM_PRODUCAO") {
     campoDias.style.display = "block";
+    inputDias.disabled = false;
   } else {
     campoDias.style.display = "none";
+    inputDias.disabled = true;
+    inputDias.value = "1";
   }
 }
+
 
 document.getElementById("status").addEventListener("change", (e) => {
   controlarCampos(e.target.value);
@@ -120,6 +145,14 @@ carregarPedido();
     alert("Erro ao atualizar status.");
   }
 });
+
+    if (p.status === "FINALIZADO" || p.status === "CANCELADO") {
+  document.getElementById("status").disabled = true;
+  document.getElementById("diasEstimados").disabled = true;
+  document.querySelector(".btn-salvar").disabled = true;
+  document.querySelector(".btn-salvar").style.opacity = "0.5";
+  document.querySelector(".btn-salvar").style.cursor = "not-allowed";
+}
 
 
 </script>

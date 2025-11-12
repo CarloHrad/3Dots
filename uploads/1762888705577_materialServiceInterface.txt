@@ -1,0 +1,113 @@
+package br.com.hst.interniship.service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import br.com.hst.interniship.model.dto.materialDTO.MaterialDTO;
+import br.com.hst.interniship.model.dto.materialDTO.MaterialDeleteDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import br.com.hst.interniship.model.MaterialModel;
+import br.com.hst.interniship.repository.MaterialRepository;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+public class MaterialService implements MaterialServiceInterface {
+
+    @Autowired
+    MaterialRepository materialRepository;
+
+
+    @Override
+    public List<MaterialDTO> getAllMaterials() {
+        return materialRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<MaterialDTO> getMaterialByIdPerson(Long idPerson) {
+        return materialRepository.findMaterialByIdPerson(idPerson);
+    }
+
+
+    @Override
+    public MaterialDTO saveMaterial(MaterialDTO materialDTO) {
+        boolean exists = materialRepository.existsByMaterialCodeAndIdPerson(materialDTO.materialCode(), materialDTO.idPerson());
+        if (exists) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Material Code unavailable or already occupied");
+        }
+        MaterialModel materialModel = convertToEntity(materialDTO);
+        MaterialModel materialSaved = materialRepository.save(materialModel);
+        return convertToDTO(materialSaved);
+    }
+
+    @Override
+    public MaterialDTO updateMaterial(Long idMaterial, MaterialDTO materialDTO) {
+        boolean exists = materialRepository.existsByMaterialCodeAndIdPerson(materialDTO.materialCode(), materialDTO.idPerson());
+        if (exists) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Material Code unavailable or already occupied");
+        }
+        MaterialModel materialModel = materialRepository.findById(idMaterial).orElseThrow();
+        materialModel.setIdMaterial(materialDTO.idMaterial());
+        materialModel.setIdPerson((materialDTO.idPerson()));
+        materialModel.setMaterialCode(materialDTO.materialCode());
+        materialModel.setMaterialName(materialDTO.materialName());
+        materialModel.setSource(materialDTO.source());
+        materialModel.setDtStart(materialDTO.dtStart());
+        materialModel.setDtEnd(materialDTO.dtEnd());
+        MaterialModel materialModelUpdate = materialRepository.save(materialModel);
+        return convertToDTO(materialModelUpdate);
+    }
+
+    @Override
+    public void deleteMaterial(MaterialDeleteDTO materialDeleteDTO) {
+        String document = materialDeleteDTO.personDTO().document();
+        String materialCode = null;
+
+        if (materialDeleteDTO.materialReferenceDTO() != null) {
+            materialCode = materialDeleteDTO.materialReferenceDTO().materialCode();
+        }
+
+        if (materialRepository.existsHours(document, materialCode)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exclusão de Material indeferida : " +
+                    "Existem horas lançadas para este material");
+        }
+
+        if (materialCode == null) {
+            materialRepository.deleteAllByDocument(document);
+        }
+        materialRepository.deleteByDocumentAndMaterialCode(document, materialCode);
+
+    }
+
+
+    private MaterialDTO convertToDTO(MaterialModel materialModel) {
+        return new MaterialDTO(materialModel.getIdMaterial(),
+                materialModel.getIdPerson(),
+                materialModel.getMaterialCode(),
+                materialModel.getMaterialName(),
+                materialModel.getSource(),
+                materialModel.getDtStart(),
+                materialModel.getDtEnd());
+    }
+
+    private MaterialModel convertToEntity(MaterialDTO materialDTO) {
+        MaterialModel materialModel = new MaterialModel();
+        materialModel.setIdMaterial(materialDTO.idMaterial());
+        materialModel.setIdPerson((materialDTO.idPerson()));
+        materialModel.setMaterialCode(materialDTO.materialCode());
+        materialModel.setMaterialName(materialDTO.materialName());
+        materialModel.setSource(materialDTO.source());
+        materialModel.setDtStart(materialDTO.dtStart());
+        materialModel.setDtEnd(materialDTO.dtEnd());
+        return materialModel;
+    }
+}
+

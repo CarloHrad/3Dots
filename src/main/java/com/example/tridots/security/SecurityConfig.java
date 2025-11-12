@@ -82,6 +82,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/pedido/atualizarStatus").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PATCH, "/admin/{idPedido}/status").hasRole("ADMINISTRADOR")
                         .requestMatchers("/admin-pedidos.html", "/admin-pedido-detalhe.html").permitAll()
+                        .requestMatchers("/detalhe-pedido-aluno.html").permitAll()
 
 
 

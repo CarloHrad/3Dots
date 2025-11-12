@@ -51,6 +51,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                             path.equals("/login.html") ||
                             path.equals("/admin-pedidos.html") ||
                             path.equals("/admin-pedido-detalhe.html") ||
+                            path.equals("/detalhe-pedido-aluno.html") ||
                             path.equals("/realizar-pedido.html") ||
                             path.equals("/meus-pedidos.html") ||
                             path.equals("/pedidos.html") ||

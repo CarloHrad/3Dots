@@ -56,6 +56,19 @@ public class ArquivoController {
         return ResponseEntity.ok(arquivos);
     }
 
+    @GetMapping("/{id}/download")
+    public ResponseEntity<byte[]> download(@PathVariable String id) throws IOException {
+        Arquivo arquivo = arquivoService.findById(id); // vamos criar esse método abaixo
+        byte[] conteudo = arquivoService.uploadArquivo(id);
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + arquivo.getNomeArquivo() + "\"")
+                .header("Content-Type", arquivo.getTipoArquivo())
+                .body(conteudo);
+    }
+
+
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleJsonFormatError(HttpMessageNotReadableException ex) {
         Map<String, Object> body = new HashMap<>();

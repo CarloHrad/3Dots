@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <title>Detalhes do Pedido</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<main class="detalhe-main">
+    <div class="pedido-card">
+        <h1 class="pedido-titulo">Pedido #<span id="numero-pedido"></span></h1>
+
+        <section class="pedido-info" id="pedido-detalhe"></section>
+
+        <hr />
+
+        <h2 class="pedido-subtitulo">Atualizar Status</h2>
+
+        <form id="form-status" class="status-form">
+            <label for="status">Novo Status:</label>
+            <select id="status" class="select-status">
+                <option value="PENDENTE">Pendente</option>
+                <option value="ACEITO">Aceito</option>
+                <option value="EM_PRODUCAO">Em Produção</option>
+                <option value="FINALIZADO">Finalizado</option>
+                <option value="CANCELADO">Cancelado</option>
+            </select>
+
+            <div id="campo-dias" class="campo-dias">
+                <label for="diasEstimados">Dias Estimados:</label>
+                <input type="number" id="diasEstimados" min="0" />
+            </div>
+
+            <button type="submit" class="btn-salvar">Salvar Alterações</button>
+        </form>
+    </div>
+</main>
+
+
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const idPedido = params.get("id");
+
+    async function carregarPedido() {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`http://localhost:8080/pedido/${idPedido}`, {
+    headers: { "Authorization": "Bearer " + token }
+  });
+
+  const baseResponse = await response.json();
+  const p = baseResponse.responseObject;
+
+  document.getElementById("numero-pedido").textContent = p.idPedido.slice(0, 6);
+
+  const dataPedido = new Date(p.data).toLocaleDateString("pt-BR");
+
+  let previsao = "Aguardando definição";
+  if (p.status !== "FINALIZADO" && p.diasEstimados != null) {
+      let d = new Date(p.data);
+      d.setDate(d.getDate() + p.diasEstimados);
+      previsao = d.toLocaleDateString("pt-BR");
+  }
+
+  if (p.status === "FINALIZADO" && p.dataFinalizacao) {
+      previsao = new Date(p.dataFinalizacao).toLocaleDateString("pt-BR");
+  }
+
+  document.getElementById("pedido-detalhe").innerHTML = `
+  <div class="detalhe-info">
+    <p><strong>Aluno:</strong><br> ${p.alunoDTO.nome} (${p.alunoDTO.raAluno})</p>
+
+    <p><strong>Descrição:</strong><br> ${p.descricao}</p>
+
+    <p><strong>Medidas:</strong><br>
+      ${p.altura} × ${p.largura} × ${p.profundidade} cm
+    </p>
+
+    <p><strong>Observação:</strong><br>
+      ${p.observacao && p.observacao.trim() !== "" ? p.observacao : "-"}
+    </p>
+
+    <p><strong>Status atual:</strong><br>
+      <span class="status ${p.status.toLowerCase()}">${p.status}</span>
+    </p>
+
+    <p><strong>Data do Pedido:</strong><br> ${dataPedido}</p>
+
+    <p><strong>Entrega:</strong><br> ${previsao}</p>
+  </div>
+`;
+
+
+  document.getElementById("status").value = p.status;
+  document.getElementById("diasEstimados").value = p.diasEstimados ?? "";
+
+  controlarCampos(p.status);
+}
+
+function controlarCampos(status) {
+  const campoDias = document.getElementById("campo-dias");
+  const inputDias = document.getElementById("diasEstimados");
+
+  if (status === "ACEITO" || status === "EM_PRODUCAO") {
+    campoDias.style.display = "block";
+    inputDias.disabled = false;
+  } else {
+    campoDias.style.display = "none";
+    inputDias.disabled = true;
+    inputDias.value = "1";
+  }
+}
+
+
+document.getElementById("status").addEventListener("change", (e) => {
+  controlarCampos(e.target.value);
+});
+
+carregarPedido();
+
+    document.getElementById("form-status").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem("token");
+
+  const body = {
+    status: document.getElementById("status").value,
+    diasEstimados: document.getElementById("diasEstimados").value || null
+  };
+
+  const response = await fetch(`http://localhost:8080/admin/${idPedido}/status`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (response.ok) {
+    alert("Status atualizado com sucesso!");
+    location.reload();
+  } else {
+    alert("Erro ao atualizar status.");
+  }
+});
+
+    if (p.status === "FINALIZADO" || p.status === "CANCELADO") {
+  document.getElementById("status").disabled = true;
+  document.getElementById("diasEstimados").disabled = true;
+  document.querySelector(".btn-salvar").disabled = true;
+  document.querySelector(".btn-salvar").style.opacity = "0.5";
+  document.querySelector(".btn-salvar").style.cursor = "not-allowed";
+}
+
+
+</script>
+
+</body>
+</html>

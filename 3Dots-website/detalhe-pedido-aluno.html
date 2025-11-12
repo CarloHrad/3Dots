@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <title>Detalhes do Pedido - Aluno</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<main class="detalhe-main">
+    <div class="pedido-card">
+
+        <!-- 🔙 Botão de voltar -->
+        <button class="btn-voltar" onclick="window.location.href='pedidos.html'">
+            ← Voltar para Meus Pedidos
+        </button>
+
+        <h1 class="pedido-titulo">Pedido #<span id="numero-pedido"></span></h1>
+
+        <section class="pedido-info" id="pedido-detalhe">
+            <p>Carregando informações...</p>
+        </section>
+    </div>
+</main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      verificarLogin();
+      carregarPedido();
+    });
+
+
+    const params = new URLSearchParams(window.location.search);
+    const idPedido = params.get("id");
+
+    async function carregarPedido() {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(`http://localhost:8080/pedido/${idPedido}`, {
+        headers: { "Authorization": "Bearer " + token }
+      });
+
+      const baseResponse = await response.json();
+      const p = baseResponse.responseObject;
+
+      document.getElementById("numero-pedido").textContent = p.idPedido.slice(0, 6);
+
+      const dataPedido = new Date(p.data).toLocaleDateString("pt-BR");
+
+      let previsao = "Aguardando definição";
+      if (p.status !== "FINALIZADO" && p.diasEstimados != null) {
+          let d = new Date(p.data);
+          d.setDate(d.getDate() + p.diasEstimados);
+          previsao = d.toLocaleDateString("pt-BR");
+      }
+
+      if (p.status === "FINALIZADO" && p.dataFinalizacao) {
+          previsao = new Date(p.dataFinalizacao).toLocaleDateString("pt-BR");
+      }
+
+      let arquivoHTML = "";
+      if (p.arquivo) {
+        arquivoHTML = `
+          <button class="btn-download" onclick="baixarArquivo('${p.arquivo.idArquivo}', '${p.idPedido}', '${p.arquivo.nomeArquivo}')">
+            Baixar arquivo
+          </button>
+        `;
+      } else {
+        arquivoHTML = "<p><em>Nenhum arquivo enviado.</em></p>";
+      }
+
+      document.getElementById("pedido-detalhe").innerHTML = `
+        <p><strong>Aluno:</strong> ${p.alunoDTO.nome} (${p.alunoDTO.raAluno})</p>
+        <p><strong>Descrição:</strong> ${p.descricao}</p>
+        <p><strong>Observação:</strong> ${p.observacao}</p>
+        <p><strong>Medidas:</strong> ${p.altura} × ${p.largura} × ${p.profundidade} cm</p>
+        <p><strong>Status atual:</strong> <span class="status ${p.status.toLowerCase()}">${p.status}</span></p>
+        <p><strong>Data do Pedido:</strong> ${dataPedido}</p>
+        <p><strong>Entrega:</strong> ${previsao}</p>
+        <p><strong>Arquivo:</strong> ${arquivoHTML}</p>
+      `;
+    }
+
+    async function baixarArquivo(idArquivo, idPedido, nomeArquivoOriginal) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:8080/arquivo/${idArquivo}/download`, {
+          headers: { "Authorization": "Bearer " + token },
+        });
+
+        if (!response.ok) throw new Error("Erro ao baixar arquivo");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `pedido-${idPedido.slice(0, 6)}-${nomeArquivoOriginal}`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        alert("Erro ao baixar arquivo: " + err.message);
+      }
+    }
+
+    function verificarLogin() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    console.log("Usuário logado:", payload.sub);
+  } catch (err) {
+    console.warn("Token inválido:", err);
+    window.location.href = "login.html";
+  }
+}
+
+</script>
+
+</body>
+</html>

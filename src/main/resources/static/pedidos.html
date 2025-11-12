@@ -28,7 +28,7 @@
     <div class="user-header" id="auth-menu"></div>
 </header>
 
-<main class="pedidos-main">
+<main class="pedidos-main aluno-layout">
     <div class="layout-pedidos">
 
         <!-- Filtros laterais -->
@@ -187,7 +187,9 @@ function logout() {
 
           card.innerHTML = `
             <div class="pedido-header">
-              <h3 class="blue-color">Pedido #${pedido.idPedido.slice(0, 6)}</h3>
+              <h3 class="blue-color pedido-titulo" onclick="abrirDetalhes('${pedido.idPedido}')">
+                Pedido #${pedido.idPedido.slice(0, 6)}
+              </h3>
               <span>Realizado em <b>${dataPedido}</b></span>
             </div>
 
@@ -195,14 +197,41 @@ function logout() {
               <div><strong>Altura</strong><p>${pedido.altura ?? "-"} mm</p></div>
               <div><strong>Largura</strong><p>${pedido.largura ?? "-"} mm</p></div>
               <div><strong>Profundidade</strong><p>${pedido.profundidade ?? "-"} mm</p></div>
-              <div><strong>Descrição</strong><p>${pedido.descricao}</p></div>
-              <div><strong>Observação</strong><p>${pedido.observacao || "-"}</p></div>
+              <div><strong>Descrição</strong>
+
+              <p class="descricao-curta" id="desc-${pedido.idPedido}">
+                ${pedido.descricao}
+              </p>
+              ${pedido.descricao.length > 95
+                ? `<button class="btn-vermais" onclick="toggleDescricao('${pedido.idPedido}', event)">Ver mais</button>`
+                : ""}
+            </div>
+
+              <div><strong>Observação</strong>
+              <p class="observacao-curta" id="obs-${pedido.idPedido}">
+                ${pedido.observacao || "-"}
+              </p>
+              ${pedido.observacao.length > 95
+                  ? `<button class="btn-vermais" onclick="toggleObservacao('${pedido.idPedido}', event)">Ver mais</button>`
+                  : ""
+              }
+            </div>
+
               <div><strong>Status atual</strong>
                   <p class="status ${pedido.status.toLowerCase()}">${pedido.status}</p>
                 </div>
-                <div><strong>Entrega prevista</strong>
-                    <p>${pedido.diasEstimados ? calcularDataPrevista(pedido.data, pedido.diasEstimados) : "Aguardando aprovação"}</p>
-                </div>
+                ${
+                  pedido.status === "CANCELADO"
+                    ? ""
+                    : `<div><strong>Entrega prevista</strong>
+                         <p>${
+                           pedido.diasEstimados
+                             ? calcularDataPrevista(pedido.data, pedido.diasEstimados)
+                             : "Aguardando aprovação"
+                         }</p>
+                       </div>`
+                }
+
 
             </div>
 
@@ -212,7 +241,10 @@ function logout() {
                 ${
                   pedido.arquivo
                     ? `
-                      <button class="btn-contact" onclick="baixarArquivo('${pedido.arquivo.idArquivo}')">Baixar arquivo</button>
+                      <button class="btn-contact" onclick="baixarArquivo('${pedido.arquivo.idArquivo}', '${pedido.idPedido}', '${pedido.arquivo.nomeArquivo}')">
+                         Baixar arquivo
+                      </button>
+
                     `
                     : "<small>Sem arquivo enviado</small>"
                 }
@@ -254,7 +286,7 @@ function logout() {
       }
     }
 
-    async function baixarArquivo(idArquivo) {
+    async function baixarArquivo(idArquivo, idPedido, nomeArquivoOriginal) {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(`http://localhost:8080/arquivo/${idArquivo}/download`, {
@@ -317,6 +349,35 @@ function mostrarFiltros() {
   checkboxes.forEach(chk => chk.checked = true);
   filtrarPedidos();
 }
+
+function toggleDescricao(id, event) {
+  const p = document.getElementById(`desc-${id}`);
+  const btn = event.target;
+
+  if (p.classList.contains("descricao-curta")) {
+    p.classList.remove("descricao-curta");
+    btn.textContent = "Ver menos";
+  } else {
+    p.classList.add("descricao-curta");
+    btn.textContent = "Ver mais";
+  }
+}
+function abrirDetalhes(idPedido) {
+  window.location.href = `detalhe-pedido-aluno.html?id=${idPedido}`;
+}
+function toggleObservacao(id, event) {
+  const p = document.getElementById(`obs-${id}`);
+  const btn = event.target;
+
+  if (p.classList.contains("observacao-curta")) {
+    p.classList.remove("observacao-curta");
+    btn.textContent = "Ver menos";
+  } else {
+    p.classList.add("observacao-curta");
+    btn.textContent = "Ver mais";
+  }
+}
+
 </script>
 </body>
 </html>
